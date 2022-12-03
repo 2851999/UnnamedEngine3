@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/UnnamedEngine3/v17
+/UnnamedEngine3.vcxproj.user
