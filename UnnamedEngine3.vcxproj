@@ -19,16 +19,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\BaseEngine.h" />
     <ClInclude Include="src\core\maths\Matrix.h" />
     <ClInclude Include="src\core\maths\Quaternion.h" />
     <ClInclude Include="src\core\maths\Utils.h" />
     <ClInclude Include="src\core\maths\Vector.h" />
+    <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\utils\Logging.h" />
     <ClInclude Include="src\utils\StringUtils.h" />
+    <ClInclude Include="src\utils\TimeUtils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\BaseEngine.cpp" />
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
-    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\core\Window.cpp" />
+    <ClCompile Include="src\Main.h" />
+    <ClCompile Include="src\utils\Logging.cpp" />
+    <ClCompile Include="src\utils\TimeUtils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\Downloads\CppDevelopment\vcpkg\installed\x64-windows\bin\glfw3.dll" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -116,10 +127,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

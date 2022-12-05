@@ -94,7 +94,7 @@ public:
     }
 
     /* Multiplies this vector by a scalar and returns the result */
-    inline Vector<T, N>& operator*(const T& scalar) const {
+    inline Vector<T, N> operator*(const T& scalar) const {
         Vector<T, N> result;
         for (unsigned int i = 0; i < N; ++i)
             result[i] = this->values[i] * scalar;
@@ -102,7 +102,7 @@ public:
     }
 
     /* Divides this vector by a scalar and returns the result */
-    inline Vector<T, N>& operator/(const T& scalar) const {
+    inline Vector<T, N> operator/(const T& scalar) const {
         Vector<T, N> result;
         for (unsigned int i = 0; i < N; ++i)
             result[i] = this->values[i] / scalar;

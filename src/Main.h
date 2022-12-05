@@ -1,8 +1,9 @@
 
-// #include "core/maths/Quaternion.h"
 #include <iostream>
 
+#include "utils/TimeUtils.h"
 #include "core/maths/Matrix.h"
+#include "core/maths/Quaternion.h"
 
 int main() {
     std::cout << "Hello World" << std::endl;
@@ -51,7 +52,8 @@ int main() {
 
     Matrix3f mat3 = {{1, 6, 3}, {4, 2, 6}, {-5, 8, 2}};
     std::cout << mat3.toString() << std::endl;
-    std::cout << mat3.inverse().toString() << std::endl;
+    Matrix3f inverse = mat3.inverse();
+    std::cout << inverse.toString() << std::endl;
 
     Quaternion quat1 = {1, 2, 3, 4};
     Quaternion quat2 = {1, 2, 3, 4};
@@ -60,6 +62,8 @@ int main() {
     std::cout << result.toString() << std::endl;
     quat1 *= quat2;
     std::cout << quat1.toString() << std::endl;
+
+    //std::cout << utils_time::getTimeAsString() << std::endl;
 
     return 0;
 }

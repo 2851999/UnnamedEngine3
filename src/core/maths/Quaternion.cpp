@@ -100,7 +100,7 @@ Quaternion Quaternion::slerp(const Quaternion& quatA, const Quaternion& quatB, f
     float s0 = 1.0f - factor;
     float s1 = factor;
 
-    const float THRESHOLD = 0.9995;
+    const float THRESHOLD = 0.9995f;
     if (dot < THRESHOLD) {
         float theta = acosf(dot);
         float invSin = 1.0f / sinf(theta);
