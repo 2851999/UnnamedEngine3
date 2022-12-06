@@ -8,7 +8,7 @@
 #include "StringUtils.h"
 
 /*****************************************************************************
- * Various time utilities
+ * utils_time namespace - Various time utilities
  *****************************************************************************/
 
 namespace utils_time {

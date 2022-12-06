@@ -40,14 +40,14 @@ void Logger::log(const std::string& message, LogType type) {
     // Log only if within the log level
     if (shouldLog(type)) {
         // Build the message
-        std::string message = "[" + logTypeString(type) + "]" + message;
+        std::string fullMessage = "[" + logTypeString(type) + "]" + message;
         if (includeTimeStamp)
-            message = "[" + utils_time::getTimeAsString() + "]" + message;
+            fullMessage = "[" + utils_time::getTimeAsString() + "]" + fullMessage;
         // Output
-        std::cout << message << std::endl;
+        std::cout << fullMessage << std::endl;
         // Output to a file as well if needed
         if (saveLogs) {
-            fileOutputStream << message << std::endl;
+            fileOutputStream << fullMessage << std::endl;
             fileOutputStream.flush();
         }
     }

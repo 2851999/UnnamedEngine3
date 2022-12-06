@@ -1,9 +1,10 @@
 
 #include <iostream>
 
-#include "utils/TimeUtils.h"
 #include "core/maths/Matrix.h"
 #include "core/maths/Quaternion.h"
+#include "utils/Logging.h"
+#include "utils/TimeUtils.h"
 
 int main() {
     std::cout << "Hello World" << std::endl;
@@ -30,7 +31,7 @@ int main() {
 
     Vector3i testVec6 = {1, 2, 3};
     Vector3i testVec7 = {4, 5, 6};
-    Vector3i cross = testVec6.cross(testVec7);
+    Vector3i cross    = testVec6.cross(testVec7);
 
     std::cout << cross.toString() << std::endl;
 
@@ -55,15 +56,20 @@ int main() {
     Matrix3f inverse = mat3.inverse();
     std::cout << inverse.toString() << std::endl;
 
-    Quaternion quat1 = {1, 2, 3, 4};
-    Quaternion quat2 = {1, 2, 3, 4};
+    Quaternion quat1  = {1, 2, 3, 4};
+    Quaternion quat2  = {1, 2, 3, 4};
     Quaternion result = quat1 * quat2;
 
     std::cout << result.toString() << std::endl;
     quat1 *= quat2;
     std::cout << quat1.toString() << std::endl;
 
-    //std::cout << utils_time::getTimeAsString() << std::endl;
+    // std::cout << utils_time::getTimeAsString() << std::endl;
+
+    Logger::log("Test message");
+
+    std::cout
+        << utils_string::toInt("10") << std::endl;
 
     return 0;
 }

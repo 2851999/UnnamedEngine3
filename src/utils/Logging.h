@@ -1,14 +1,14 @@
 #pragma once
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 /* Log types */
 enum LogType {
-    Debug = 1,
+    Debug       = 1,
     Information = 2,
-    Warning = 4,
-    Error = 8
+    Warning     = 4,
+    Error       = 8
 };
 
 /* Provides bitmask functionality for the log levels above */
@@ -59,6 +59,10 @@ public:
 
     /* Various log functions */
     static void log(const std::string& message, LogType type);
-    static inline void log(const std::string& message) { log(message, LogType::Debug); }
-    static inline void log(const std::string& message, const std::string& source, LogType type) { log("[" + source + "]" + message, type); }
+    static inline void log(const std::string& message) { log(" " + message, LogType::Debug); }
+    static inline void log(const std::string& message, const std::string& source, LogType type) { log("[" + source + "] " + message, type); }
+    static inline void logAndThrowError(const std::string& message, const std::string& source) {
+        log(message, source, LogType::Error);
+        throw std::runtime_error("[" + source + "] " + message);
+    }
 };

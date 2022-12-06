@@ -4,3 +4,4 @@ ColumnLimit: 0
 AccessModifierOffset: -4
 NamespaceIndentation: All
 SpaceAfterLogicalNot: True
+AlignConsecutiveAssignments: Consecutive 
