@@ -1,10 +1,20 @@
 #pragma once
 
+#include "Settings.h"
+#include "Window.h"
+
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
 class BaseEngine {
+private:
+    /* Engine settings*/
+    Settings settings = {};
+
+    /* Window instance for the engine */
+    Window* window = nullptr;
+
 public:
     /* Constructor and destructors */
     BaseEngine() {}

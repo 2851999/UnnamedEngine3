@@ -35,14 +35,25 @@ namespace VideoResolution {
  *****************************************************************************/
 
 struct WindowSettings {
-    std::string title   = "Unnamed Engine 3";
-    unsigned int width  = 0;
-    unsigned int height = 0;
-    float aspectRatio   = 0.0f;
-    bool resizable      = false;
-    bool decorated      = true;
-    bool borderless     = false;
-    bool floating       = false;
+    std::string title        = "Unnamed Engine 3";
+    unsigned int width       = 0;
+    unsigned int height      = 0;
+    bool resizable           = false;
+    bool decorated           = true;
+    bool borderless          = false;
+    bool floating            = false;
+    unsigned int refreshRate = 0;
+};
+
+/*****************************************************************************
+ * VideoSettings struct - Contains various video settings
+ *****************************************************************************/
+struct VideoSettings {
+    // These are settings that are involved in the window creation
+    bool fullscreen          = 0;
+    unsigned int refreshRate = 0;
+    Vector2i resolution      = VideoResolution::RES_DEFAULT;
+    float aspectRatio        = 0.0f;
 };
 
 /*****************************************************************************
@@ -51,5 +62,8 @@ struct WindowSettings {
 
 struct Settings {
     /* Window settings */
-    WindowSettings window = {}
+    WindowSettings window = {};
+
+    /* Video settings */
+    VideoSettings video = {};
 };

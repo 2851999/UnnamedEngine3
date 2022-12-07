@@ -1,12 +1,18 @@
 
 #include <iostream>
 
+#include "core/BaseEngine.h"
 #include "core/maths/Matrix.h"
 #include "core/maths/Quaternion.h"
 #include "utils/Logging.h"
 #include "utils/TimeUtils.h"
 
-int main() {
+class EngineTest : public BaseEngine {
+public:
+    virtual void initialise() override;
+};
+
+void EngineTest::initialise() {
     std::cout << "Hello World" << std::endl;
 
     Vector<float, 2> testVec;
@@ -70,6 +76,11 @@ int main() {
 
     std::cout
         << utils_string::toInt("10") << std::endl;
+}
+
+int main() {
+    EngineTest engineTest;
+    engineTest.create();
 
     return 0;
 }
