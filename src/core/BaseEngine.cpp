@@ -1,7 +1,5 @@
 #include "BaseEngine.h"
 
-#include <GLFW/glfw3.h>
-
 #include "../utils/Logging.h"
 #include "../utils/TimeUtils.h"
 
@@ -29,6 +27,10 @@ void BaseEngine::create() {
         // Create the input manager
         inputManager = new InputManager(this->window);
         inputManager->addListener(this);
+
+        // Vulkan initialisation
+        vulkanInstance = new VulkanInstance();
+        vulkanInstance->create(settings);
 
         // Now we are ready to create things for Vulkan
         this->created();
@@ -62,6 +64,9 @@ void BaseEngine::create() {
 
         // Now to destroy everything
         this->destroy();
+
+        // Vulkan
+        delete vulkanInstance;
     }
 
     // Destroy the input manager and window

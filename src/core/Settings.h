@@ -54,7 +54,15 @@ struct VideoSettings {
     unsigned int refreshRate = 0;
     Vector2i resolution      = VideoResolution::RES_DEFAULT;
     float aspectRatio        = 0.0f;
-    unsigned int maxFPS      = 0;
+    // Other settings
+    unsigned int maxFPS = 0;
+};
+
+/*****************************************************************************
+ * Debugging settings struct - Contains various debugging settings
+ *****************************************************************************/
+struct DebugSettings {
+    bool validationLayers = false;
 };
 
 /*****************************************************************************
@@ -67,4 +75,7 @@ struct Settings {
 
     /* Video settings */
     VideoSettings video = {};
+
+    /* Debug settings */
+    DebugSettings debug = {};
 };

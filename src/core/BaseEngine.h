@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "Window.h"
 #include "input/Input.h"
+#include "vulkan/VulkanInstance.h"
 
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
@@ -23,6 +24,9 @@ private:
     /* Frame rate calculator and limiter */
     FPSCalculator fpsCalculator;
     FPSLimiter fpsLimiter;
+
+    /* Vulkan instance */
+    VulkanInstance* vulkanInstance;
 
 public:
     /* Constructor and destructors */

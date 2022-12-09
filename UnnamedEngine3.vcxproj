@@ -26,6 +26,9 @@
     <ClInclude Include="src\core\maths\Utils.h" />
     <ClInclude Include="src\core\maths\Vector.h" />
     <ClInclude Include="src\core\Settings.h" />
+    <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
+    <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
+    <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\utils\FPSUtils.h" />
     <ClInclude Include="src\utils\Logging.h" />
@@ -38,6 +41,8 @@
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanInstance.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\Main.h" />
     <ClCompile Include="src\utils\FPSUtils.cpp" />
@@ -134,14 +139,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\include;C:\VulkanSDK\1.3.204.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\lib;C:\VulkanSDK\1.3.204.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;winmm.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

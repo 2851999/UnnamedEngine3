@@ -82,7 +82,8 @@ void EngineTest::initialise() {
 
     std::cout << utils_string::toInt("10") << std::endl;
 
-    getSettings().video.maxFPS = 60;
+    getSettings().video.maxFPS           = 60;
+    getSettings().debug.validationLayers = true;
 }
 
 void EngineTest::created() {
