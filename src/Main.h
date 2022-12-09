@@ -10,6 +10,10 @@
 class EngineTest : public BaseEngine {
 public:
     virtual void initialise() override;
+    virtual void created() override;
+    virtual void update() override;
+    virtual void render() override;
+    virtual void destroy() override;
 };
 
 void EngineTest::initialise() {
@@ -74,8 +78,22 @@ void EngineTest::initialise() {
 
     Logger::log("Test message");
 
-    std::cout
-        << utils_string::toInt("10") << std::endl;
+    std::cout << utils_string::toInt("10") << std::endl;
+
+    getSettings().video.maxFPS = 60;
+}
+
+void EngineTest::created() {
+}
+
+void EngineTest::update() {
+    std::cout << getFPS() << std::endl;
+}
+
+void EngineTest::render() {
+}
+
+void EngineTest::destroy() {
 }
 
 int main() {

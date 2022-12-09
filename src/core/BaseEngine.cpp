@@ -1,9 +1,9 @@
 #include "BaseEngine.h"
 
-#include <stdexcept>
+#include <GLFW/glfw3.h>
 
 #include "../utils/Logging.h"
-#include "GLFW/glfw3.h"
+#include "../utils/TimeUtils.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -29,8 +29,20 @@ void BaseEngine::create() {
         // Now we are ready to create things for Vulkan
         this->created();
 
+        // Setup the FPS limiter
+        this->fpsLimiter.setTarget(settings.video.maxFPS);
+
+        // Start tracking FPS
+        this->fpsCalculator.start();
+
         // Main engine loop (Continue unless requested to stop)
         while (! this->window->shouldClose()) {
+            // Start of frame
+            this->fpsLimiter.startFrame();
+
+            // Update the fps calculator
+            this->fpsCalculator.update();
+
             // Poll any glfw events
             glfwPollEvents();
 
@@ -39,6 +51,9 @@ void BaseEngine::create() {
 
             // Perform any rendering
             this->render();
+
+            // End of frame
+            this->fpsLimiter.endFrame();
         }
 
         // Now to destroy everything

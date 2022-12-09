@@ -26,6 +26,7 @@
     <ClInclude Include="src\core\maths\Vector.h" />
     <ClInclude Include="src\core\Settings.h" />
     <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\utils\FPSUtils.h" />
     <ClInclude Include="src\utils\Logging.h" />
     <ClInclude Include="src\utils\StringUtils.h" />
     <ClInclude Include="src\utils\TimeUtils.h" />
@@ -37,6 +38,7 @@
     <ClCompile Include="src\core\Settings.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\Main.h" />
+    <ClCompile Include="src\utils\FPSUtils.cpp" />
     <ClCompile Include="src\utils\Logging.cpp" />
     <ClCompile Include="src\utils\StringUtils.cpp" />
     <ClCompile Include="src\utils\TimeUtils.cpp" />
@@ -137,7 +139,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

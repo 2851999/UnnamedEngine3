@@ -54,6 +54,7 @@ struct VideoSettings {
     unsigned int refreshRate = 0;
     Vector2i resolution      = VideoResolution::RES_DEFAULT;
     float aspectRatio        = 0.0f;
+    unsigned int maxFPS      = 0;
 };
 
 /*****************************************************************************

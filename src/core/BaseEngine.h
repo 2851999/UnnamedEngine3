@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utils/FPSUtils.h"
 #include "Settings.h"
 #include "Window.h"
 
@@ -14,6 +15,10 @@ private:
 
     /* Window instance for the engine */
     Window* window = nullptr;
+
+    /* Frame rate calculator and limiter */
+    FPSCalculator fpsCalculator;
+    FPSLimiter fpsLimiter;
 
 public:
     /* Constructor and destructors */
@@ -38,4 +43,11 @@ public:
 
     /* Called to destroy any created resources just before the engine stops */
     virtual void destroy() {}
+
+    /* Returns a reference to the settings for assigning */
+    inline Settings& getSettings() { return settings; }
+
+    /* For obtaining FPS and current frame delta (in seconds) */
+    inline unsigned int getFPS() { return fpsCalculator.getFPS(); }
+    inline float getDelta() { return fpsCalculator.getDelta(); }
 };
