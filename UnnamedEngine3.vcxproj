@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\BaseEngine.h" />
+    <ClInclude Include="src\core\input\Input.h" />
     <ClInclude Include="src\core\maths\Matrix.h" />
     <ClInclude Include="src\core\maths\Quaternion.h" />
     <ClInclude Include="src\core\maths\Utils.h" />
@@ -33,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\BaseEngine.cpp" />
+    <ClCompile Include="src\core\input\Input.cpp" />
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />

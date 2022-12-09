@@ -14,6 +14,8 @@ public:
     virtual void update() override;
     virtual void render() override;
     virtual void destroy() override;
+
+    void onKeyPressed(int key, bool repeated) override;
 };
 
 void EngineTest::initialise() {
@@ -94,6 +96,11 @@ void EngineTest::render() {
 }
 
 void EngineTest::destroy() {
+}
+
+void EngineTest::onKeyPressed(int key, bool repeated) {
+    if (key == GLFW_KEY_ESCAPE)
+        getWindow()->close();
 }
 
 int main() {

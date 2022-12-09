@@ -26,6 +26,10 @@ void BaseEngine::create() {
     if (! windowCreated)
         Logger::log("Failed to create a window", "BaseEngine", LogType::Error);
     else {
+        // Create the input manager
+        inputManager = new InputManager(this->window);
+        inputManager->addListener(this);
+
         // Now we are ready to create things for Vulkan
         this->created();
 
@@ -60,7 +64,8 @@ void BaseEngine::create() {
         this->destroy();
     }
 
-    // Destroy the window
+    // Destroy the input manager and window
+    delete this->inputManager;
     delete this->window;
 
     // Terminate GLFW

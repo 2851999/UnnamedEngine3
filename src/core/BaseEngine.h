@@ -3,18 +3,22 @@
 #include "../utils/FPSUtils.h"
 #include "Settings.h"
 #include "Window.h"
+#include "input/Input.h"
 
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
-class BaseEngine {
+class BaseEngine : public InputListener {
 private:
     /* Engine settings*/
     Settings settings = {};
 
     /* Window instance for the engine */
     Window* window = nullptr;
+
+    /* InputManager instance for the engine */
+    InputManager* inputManager = nullptr;
 
     /* Frame rate calculator and limiter */
     FPSCalculator fpsCalculator;
@@ -46,6 +50,9 @@ public:
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }
+
+    /* Returns the window instance */
+    inline Window* getWindow() { return window; }
 
     /* For obtaining FPS and current frame delta (in seconds) */
     inline unsigned int getFPS() { return fpsCalculator.getFPS(); }

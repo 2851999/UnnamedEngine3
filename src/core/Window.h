@@ -41,4 +41,7 @@ public:
 
     /* Destroy's the window (if created) */
     void destroy();
+
+    /* Returns the GLFW instance */
+    inline GLFWwindow* getInstance() { return instance; }
 };
