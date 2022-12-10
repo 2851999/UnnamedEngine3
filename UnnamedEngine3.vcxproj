@@ -26,6 +26,7 @@
     <ClInclude Include="src\core\maths\Utils.h" />
     <ClInclude Include="src\core\maths\Vector.h" />
     <ClInclude Include="src\core\Settings.h" />
+    <ClInclude Include="src\core\vulkan\VulkanDevice.h" />
     <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
     <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
@@ -41,6 +42,7 @@
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanDevice.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanInstance.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp" />
@@ -142,6 +144,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\Users\Joel\Downloads\CppDevelopment\vcpkg\installed\x64-windows\include;C:\VulkanSDK\1.3.204.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

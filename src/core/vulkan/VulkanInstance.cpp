@@ -63,12 +63,45 @@ bool VulkanInstance::create(const Settings& settings) {
     if (success) {
         extensions.loadInstanceExtensions(this);
 
-        // Create the debug messenger if neeeded
+        // Create the debug messenger if needed
         if (settings.debug.validationLayers)
             validationLayers->createDebugMessenger();
     }
 
     return success;
+}
+
+void VulkanInstance::pickPhysicalDevice() {
+    // Chosen device
+    VkPhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
+
+    // Obtain a list of the available devices
+    uint32_t physicalDeviceCount;
+    vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
+
+    if (physicalDeviceCount > 0) {
+        std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
+        vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.data());
+
+        // Suitability value for current chosen device
+        int maxSuitability = 0;
+
+        // Find a suitable device
+        for (const auto& physicalDevice : physicalDevices) {
+            // Check suitability and pick the most suitable
+            int currentSuitability = VulkanDevice::rateSuitability(physicalDevice, extensions);
+
+            if (currentSuitability > maxSuitability) {
+                maxSuitability       = maxSuitability;
+                chosenPhysicalDevice = physicalDevice;
+            }
+        }
+
+        // Check if any device was found
+        if (chosenPhysicalDevice == VK_NULL_HANDLE)
+            Logger::logAndThrowError("Failed to find a suitable physical device", "VulkanInstance");
+    } else
+        Logger::logAndThrowError("Failed to find any physical devices with Vulkan support", "VulkanInstance");
 }
 
 void VulkanInstance::destroy() {

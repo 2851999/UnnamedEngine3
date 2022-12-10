@@ -31,7 +31,7 @@ bool VulkanValidationLayers::checkInstanceSupport() {
     for (unsigned int i = 0; i < missingLayerNames.size(); ++i)
         Logger::log("The '" + utils_string::str(missingLayerNames[i]) + "' validation layer is not present", "VulkanValidationLayers", LogType::Debug);
 
-    return missingLayerNames.size() == 0;
+    return missingLayerNames.empty();
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL VulkanValidationLayers::debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {

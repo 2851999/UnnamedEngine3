@@ -32,6 +32,9 @@ void BaseEngine::create() {
         vulkanInstance = new VulkanInstance();
         vulkanInstance->create(settings);
 
+        // Pick a physical device
+        vulkanInstance->pickPhysicalDevice();
+
         // Now we are ready to create things for Vulkan
         this->created();
 

@@ -9,7 +9,7 @@
 class VulkanInstance;
 
 /*****************************************************************************
- * VulkanExtensions class - For handling Vulkan instacne extensions
+ * VulkanExtensions class - For handling Vulkan instance extensions
  *****************************************************************************/
 
 class VulkanExtensions {
@@ -37,7 +37,10 @@ public:
 
     /* Checks the required extensions are supported by the instance - logs
        any that aren't in debug */
-    bool checkInstanceSupport();
+    bool checkInstanceSupport() const;
+
+    /* Checks the required extensions are supported by a physical device */
+    bool checkPhysicalDeviceSupport(VkPhysicalDevice physicalDevice) const;
 
     /* Loads instance extension methods ready for use */
     void loadInstanceExtensions(const VulkanInstance* instance);

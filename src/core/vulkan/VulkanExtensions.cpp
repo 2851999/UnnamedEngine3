@@ -20,7 +20,7 @@ void VulkanExtensions::addRequired(const Settings& settings) {
         requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 }
 
-bool VulkanExtensions::checkInstanceSupport() {
+bool VulkanExtensions::checkInstanceSupport() const {
     // Obtain a list of supported instance extensions
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -43,7 +43,29 @@ bool VulkanExtensions::checkInstanceSupport() {
     for (unsigned int i = 0; i < missingExtensionNames.size(); ++i)
         Logger::log("The '" + utils_string::str(missingExtensionNames[i]) + "' extension is not present", "VulkanExtensions", LogType::Debug);
 
-    return missingExtensionNames.size() == 0;
+    return missingExtensionNames.empty();
+}
+
+bool VulkanExtensions::checkPhysicalDeviceSupport(VkPhysicalDevice physicalDevice) const {
+    // Obtain the supported extensions
+    uint32_t supportedExtensionCount;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &supportedExtensionCount, nullptr);
+    std::vector<VkExtensionProperties> supportedDeviceExtensions(supportedExtensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &supportedExtensionCount, supportedDeviceExtensions.data());
+
+    // Go though and remove present extensions
+    std::vector<const char*> missingExtensionNames = requiredExtensions;
+
+    for (const auto& extension : supportedDeviceExtensions) {
+        for (unsigned int i = 0; i < missingExtensionNames.size(); ++i) {
+            if (strcmp(missingExtensionNames[i], extension.extensionName)) {
+                missingExtensionNames.erase(missingExtensionNames.begin() + i);
+                break;
+            }
+        }
+    }
+
+    return missingExtensionNames.empty();
 }
 
 void VulkanExtensions::loadInstanceExtensions(const VulkanInstance* instance) {

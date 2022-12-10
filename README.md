@@ -6,3 +6,5 @@ Required libraries:
 - glfw3
 - vulkan-1
 - winmm (Windows only)
+
+Uses C++17.

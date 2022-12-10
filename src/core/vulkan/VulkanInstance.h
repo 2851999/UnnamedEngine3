@@ -2,6 +2,7 @@
 
 #include "../../utils/Logging.h"
 #include "../Settings.h"
+#include "VulkanDevice.h"
 #include "VulkanExtensions.h"
 #include "VulkanValidationLayers.h"
 
@@ -39,6 +40,9 @@ public:
             Logger::log("Failed to load the external function '" + utils_string::str(funcName) + "'", "VulkanInstance", LogType::Error);
         return loadedFunc;
     };
+
+    /* Picks a suitable device and returns it */
+    void pickPhysicalDevice();
 
     /* Returns the VkInstance */
     inline VkInstance getVkInstance() const { return instance; }
