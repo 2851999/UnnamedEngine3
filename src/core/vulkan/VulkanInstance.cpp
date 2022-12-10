@@ -1,5 +1,6 @@
 #include "VulkanInstance.h"
 
+#include "../Window.h"
 #include "VulkanExtensions.h"
 
 /*****************************************************************************
@@ -71,7 +72,7 @@ bool VulkanInstance::create(const Settings& settings) {
     return success;
 }
 
-void VulkanInstance::pickPhysicalDevice() {
+void VulkanInstance::pickPhysicalDevice(const Window* window) {
     // Chosen device
     VkPhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
 
@@ -89,7 +90,7 @@ void VulkanInstance::pickPhysicalDevice() {
         // Find a suitable device
         for (const auto& physicalDevice : physicalDevices) {
             // Check suitability and pick the most suitable
-            int currentSuitability = VulkanDevice::rateSuitability(physicalDevice, extensions);
+            int currentSuitability = VulkanDevice::rateSuitability(physicalDevice, extensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
 
             if (currentSuitability > maxSuitability) {
                 maxSuitability       = maxSuitability;

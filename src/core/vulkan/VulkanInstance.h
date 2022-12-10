@@ -6,6 +6,9 @@
 #include "VulkanExtensions.h"
 #include "VulkanValidationLayers.h"
 
+// Forward declaration
+class Window;
+
 /*****************************************************************************
  * VulkanInstance class - For handling a Vulkan instance
  *****************************************************************************/
@@ -41,8 +44,9 @@ public:
         return loadedFunc;
     };
 
-    /* Picks a suitable device and returns it */
-    void pickPhysicalDevice();
+    /* Picks a suitable device and returns it - will ensure present queue
+       support if window parameter is not nullptr */
+    void pickPhysicalDevice(const Window* window);
 
     /* Returns the VkInstance */
     inline VkInstance getVkInstance() const { return instance; }

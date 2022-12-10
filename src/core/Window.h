@@ -1,9 +1,7 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #include "Settings.h"
+#include "vulkan/VulkanInstance.h"
 
 /*****************************************************************************
  * Window - Handles a window using GLFW
@@ -13,6 +11,10 @@ class Window {
 private:
     /* Window instance this handles */
     GLFWwindow* instance = nullptr;
+
+    /* Vulkan instance and surface */
+    VkInstance vulkanInstance = VK_NULL_HANDLE;
+    VkSurfaceKHR surface      = VK_NULL_HANDLE;
 
     /* For assigning various window hints */
     inline void setResizable(bool resizable) { glfwWindowHint(GLFW_RESIZABLE, resizable); }
@@ -29,13 +31,13 @@ public:
     virtual ~Window() { destroy(); }
 
     /* Create the window - returns whether completed successfully */
-    bool create(WindowSettings& windowSettings, VideoSettings& videoSettings);
+    bool create(WindowSettings& windowSettings, VideoSettings& videoSettings, const VulkanInstance* vulkanInstance);
 
     /* Returns whether the user has requested the window to close */
-    inline bool shouldClose() { return glfwWindowShouldClose(instance); }
+    inline bool shouldClose() const { return glfwWindowShouldClose(instance); }
 
     /* Requests this window to close */
-    inline void close() { return glfwSetWindowShouldClose(instance, true); }
+    inline void close() { glfwSetWindowShouldClose(instance, true); }
 
     /* Assigns the position of this window */
     inline void setPosition(int x, int y) { glfwSetWindowPos(instance, x, y); }
@@ -44,5 +46,8 @@ public:
     void destroy();
 
     /* Returns the GLFW instance */
-    inline GLFWwindow* getInstance() { return instance; }
+    inline GLFWwindow* getInstance() const { return instance; }
+
+    /* Returns the VkSurface */
+    inline VkSurfaceKHR getVkSurface() const { return surface; }
 };

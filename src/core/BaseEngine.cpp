@@ -17,23 +17,31 @@ void BaseEngine::create() {
         throw std::runtime_error("Failed to initialise GLFW");
     }
 
-    // Create the window
-    this->window       = new Window();
-    bool windowCreated = this->window->create(this->settings.window, this->settings.video);
+    // States whether initialisation was successful and we can continue to
+    // the main engine loop
+    bool initSuccess = true;
 
-    if (! windowCreated)
+    // Vulkan initialisation
+    vulkanInstance = new VulkanInstance();
+    if (! vulkanInstance->create(settings)) {
+        Logger::log("Failed to create a Vulkan instance", "BaseEngine", LogType::Error);
+        initSuccess = false;
+    }
+
+    // Create the window
+    this->window = new Window();
+    if (! this->window->create(this->settings.window, this->settings.video, vulkanInstance)) {
         Logger::log("Failed to create a window", "BaseEngine", LogType::Error);
-    else {
+        initSuccess = false;
+    }
+
+    if (initSuccess) {
         // Create the input manager
         inputManager = new InputManager(this->window);
         inputManager->addListener(this);
 
-        // Vulkan initialisation
-        vulkanInstance = new VulkanInstance();
-        vulkanInstance->create(settings);
-
         // Pick a physical device
-        vulkanInstance->pickPhysicalDevice();
+        vulkanInstance->pickPhysicalDevice(this->window);
 
         // Now we are ready to create things for Vulkan
         this->created();
@@ -68,13 +76,13 @@ void BaseEngine::create() {
         // Now to destroy everything
         this->destroy();
 
-        // Vulkan
-        delete vulkanInstance;
+        // Destroy input manager
+        delete this->inputManager;
     }
 
-    // Destroy the input manager and window
-    delete this->inputManager;
+    // Destroy the window and Vulkan instance
     delete this->window;
+    delete vulkanInstance;
 
     // Terminate GLFW
     glfwTerminate();

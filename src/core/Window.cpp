@@ -6,7 +6,9 @@
  * Window
  *****************************************************************************/
 
-bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings) {
+bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings, const VulkanInstance* vulkanInstance) {
+    this->vulkanInstance = vulkanInstance->getVkInstance();
+
     // Setup the default parameters
     glfwDefaultWindowHints();
 
@@ -60,11 +62,19 @@ bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings
     if (! monitor)
         this->center(width, height);
 
+    // Create the window surface
+    if (glfwCreateWindowSurface(this->vulkanInstance, instance, nullptr, &surface) != VK_SUCCESS) {
+        Logger::log("Failed to create the window surface", "Window", LogType::Error);
+        return false;
+    }
+
     // If reached this point, assume creation was successful
     return true;
 }
 
 void Window::destroy() {
+    if (surface)
+        vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
     if (instance)
         glfwDestroyWindow(instance);
 }
