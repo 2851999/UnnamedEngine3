@@ -43,6 +43,7 @@
     <ClCompile Include="src\core\Settings.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\Main.h" />
     <ClCompile Include="src\utils\FPSUtils.cpp" />

@@ -19,6 +19,8 @@ public:
 };
 
 void EngineTest::initialise() {
+    Logger::setLogLevel(LogType::Information | LogType::Warning | LogType::Error);
+
     std::cout << "Hello World" << std::endl;
 
     Vector<float, 2> testVec;
@@ -90,7 +92,7 @@ void EngineTest::created() {
 }
 
 void EngineTest::update() {
-    std::cout << getFPS() << std::endl;
+    // std::cout << getFPS() << std::endl;
 }
 
 void EngineTest::render() {

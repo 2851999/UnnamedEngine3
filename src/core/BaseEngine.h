@@ -26,7 +26,7 @@ private:
     FPSLimiter fpsLimiter;
 
     /* Vulkan instance */
-    VulkanInstance* vulkanInstance;
+    VulkanInstance* vulkanInstance = nullptr;
 
 public:
     /* Constructor and destructors */

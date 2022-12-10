@@ -35,6 +35,12 @@ private:
         return "DEBUG";
     }
 
+    /* Should include timestamp in logs? */
+    static bool includeTimeStamp;
+
+    /* Current log level */
+    static LogType logLevel;
+
     /* States whether logs should be saved to a file */
     static bool saveLogs;
 
@@ -45,11 +51,9 @@ private:
     static inline bool shouldLog(LogType type) { return logLevel & type; }
 
 public:
-    /* Current log level */
-    static LogType logLevel;
-
-    /* Should include timestamp in logs? */
-    static bool includeTimeStamp;
+    /* Methods to set logger settings */
+    static inline void setLogLevel(LogType logLevel) { Logger::logLevel = logLevel; }
+    static inline void setIncludeTimeStamp(bool includeTimeStamp) { Logger::includeTimeStamp = includeTimeStamp; }
 
     /* Starts saving the logs */
     static void startFileOutput(const std::string& path);

@@ -1,6 +1,7 @@
 #include "VulkanExtensions.h"
 
 #include "../../utils/Logging.h"
+#include "VulkanInstance.h"
 
 /*****************************************************************************
  * VulkanExtensions class
@@ -31,7 +32,7 @@ bool VulkanExtensions::checkInstanceSupport() {
 
     for (const auto& extension : supportedExtensions) {
         for (unsigned int i = 0; i < missingExtensionNames.size(); ++i) {
-            if (utils_string::str(missingExtensionNames[i]) == utils_string::str(extension.extensionName)) {
+            if (strcmp(missingExtensionNames[i], extension.extensionName)) {
                 missingExtensionNames.erase(missingExtensionNames.begin() + i);
                 break;
             }
@@ -42,5 +43,11 @@ bool VulkanExtensions::checkInstanceSupport() {
     for (unsigned int i = 0; i < missingExtensionNames.size(); ++i)
         Logger::log("The '" + utils_string::str(missingExtensionNames[i]) + "' extension is not present", "VulkanExtensions", LogType::Debug);
 
-    return missingExtensionNames.size() > 0;
+    return missingExtensionNames.size() == 0;
+}
+
+void VulkanExtensions::loadInstanceExtensions(const VulkanInstance* instance) {
+    this->vkInstance                       = instance->getVkInstance();
+    loaded_vkCreateDebugUtilsMessengerEXT  = instance->loadExternal<PFN_vkCreateDebugUtilsMessengerEXT>("vkCreateDebugUtilsMessengerEXT");
+    loaded_vkDestroyDebugUtilsMessengerEXT = instance->loadExternal<PFN_vkDestroyDebugUtilsMessengerEXT>("vkDestroyDebugUtilsMessengerEXT");
 }

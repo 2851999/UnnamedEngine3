@@ -101,6 +101,9 @@
     <ClCompile Include="src\core\vulkan\VulkanInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Downloads\CppDevelopment\vcpkg\installed\x64-windows\bin\glfw3.dll" />

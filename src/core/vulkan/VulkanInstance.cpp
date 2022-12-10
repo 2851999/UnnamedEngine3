@@ -11,13 +11,16 @@ bool VulkanInstance::create(const Settings& settings) {
     VkApplicationInfo appInfo  = {};
     appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName   = settings.window.title.c_str();
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
     appInfo.pEngineName        = "Unnamed Engine 3";
-    appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.engineVersion      = VK_MAKE_API_VERSION(0, 1, 0, 0);
     appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     // Check the instance supports the required extensions
     extensions.addRequired(settings);
+
+    // For checking if instance creation was successful
+    bool success = false;
 
     // Check instance support
     if (extensions.checkInstanceSupport()) {
@@ -29,24 +32,48 @@ bool VulkanInstance::create(const Settings& settings) {
         createInfo.pApplicationInfo        = &appInfo;
         createInfo.enabledExtensionCount   = static_cast<uint32_t>(requiredExtensions.size());
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+        createInfo.enabledLayerCount       = 0;
+        createInfo.pNext                   = nullptr;
+
+        // Only used if validation layers are enabled
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
 
         // Add validation layer info if applicable
         if (settings.debug.validationLayers) {
-            std::vector<const char*>& requestedValidationLayers = validationLayers.getRequested();
+            validationLayers = new VulkanValidationLayers(extensions);
 
-            createInfo.enabledLayerCount   = static_cast<uint32_t>(requestedValidationLayers.size());
-            createInfo.ppEnabledLayerNames = requiredExtensions.data();
-        } else
-            createInfo.enabledLayerCount = 0;
+            if (validationLayers->checkInstanceSupport()) {
+                std::vector<const char*>& requestedValidationLayers = validationLayers->getRequested();
+
+                createInfo.enabledLayerCount   = static_cast<uint32_t>(requestedValidationLayers.size());
+                createInfo.ppEnabledLayerNames = requestedValidationLayers.data();
+
+                // Also ensure we can debug instance creation and deletion
+                validationLayers->assignDebugMessengerCreateInfo(debugCreateInfo);
+
+                createInfo.pNext = &debugCreateInfo;
+            }
+        }
 
         // Create the instance and return if successful
-        return vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS;
+        success = vkCreateInstance(&createInfo, nullptr, &instance) == VK_SUCCESS;
     }
 
-    return false;
+    // If successful load extensions
+    if (success) {
+        extensions.loadInstanceExtensions(this);
+
+        // Create the debug messenger if neeeded
+        if (settings.debug.validationLayers)
+            validationLayers->createDebugMessenger();
+    }
+
+    return success;
 }
 
 void VulkanInstance::destroy() {
+    if (validationLayers)
+        delete validationLayers;
     if (instance)
         vkDestroyInstance(instance, nullptr);
 }
