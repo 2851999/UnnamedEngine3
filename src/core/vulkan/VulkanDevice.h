@@ -45,7 +45,10 @@ private:
     VkDevice logicalDevice;
 
     /* Extension support of this device */
-    VulkanExtensions::PhysicalDeviceSupport supportedExtensions;
+    VulkanExtensions::Support supportedExtensions;
+
+    /* the extensions of this device */
+    VulkanDeviceExtensions* extensions;
 
     /* Queue families used by this device */
     QueueFamilyIndices queueFamiliyIndices;
@@ -65,11 +68,13 @@ public:
         /* Device properties */
         VkPhysicalDeviceProperties properties;
 
-        /* Extensions */
-        VulkanExtensions* extensions;
+        /* Extensions
+           Note: Once a VulkanDevice is created, it should have complete ownership
+                 of this - it should not be deleted elsewhere */
+        VulkanDeviceExtensions* extensions;
 
         /* Physical device support */
-        VulkanExtensions::PhysicalDeviceSupport supportedExtensions;
+        VulkanExtensions::Support supportedExtensions;
 
         /* Queue family indices */
         QueueFamilyIndices queueFamilyIndices;
@@ -80,7 +85,7 @@ public:
     virtual ~VulkanDevice();
 
     /* Obtains device info given a physical device instance */
-    static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanExtensions* extensions, VkSurfaceKHR windowSurface);
+    static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VkSurfaceKHR windowSurface);
 
     /* Rates the suitability of physical device for the engine - Higher values
        means more suitable, 0 means not suitable - if window surface given is

@@ -18,14 +18,14 @@ bool VulkanInstance::create(const Settings& settings) {
     appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     // Check the instance supports the required extensions
-    extensions = new VulkanExtensions();
+    extensions = new VulkanInstanceExtensions();
     extensions->addExtensions(settings);
 
     // For checking if instance creation was successful
     bool success = false;
 
     // Check instance support
-    if (extensions->checkInstanceSupport()) {
+    if (extensions->checkSupport()) {
         std::vector<const char*>& requiredExtensions = extensions->getRequiredExtensions();
 
         // Create info
@@ -63,7 +63,7 @@ bool VulkanInstance::create(const Settings& settings) {
 
     // If successful load extensions
     if (success) {
-        extensions->loadInstanceExtensions(this);
+        extensions->loadExtensions(this);
 
         // Create the debug messenger if needed
         if (settings.debug.validationLayers)
@@ -73,9 +73,13 @@ bool VulkanInstance::create(const Settings& settings) {
     return success;
 }
 
-VulkanDevice* VulkanInstance::pickPhysicalDevice(const Window* window) {
+VulkanDevice* VulkanInstance::pickPhysicalDevice(const Settings& settings, const Window* window) {
     // Chosen device
     VulkanDevice::PhysicalDeviceInfo chosenPhysicalDeviceInfo;
+
+    // Device extensions - will be handled by VulkanDevice once created
+    VulkanDeviceExtensions* deviceExtensions = new VulkanDeviceExtensions();
+    deviceExtensions->addExtensions(settings);
 
     // Obtain a list of the available devices
     uint32_t physicalDeviceCount;
@@ -91,7 +95,7 @@ VulkanDevice* VulkanInstance::pickPhysicalDevice(const Window* window) {
         // Find a suitable device
         for (const auto& physicalDevice : physicalDevices) {
             // Query the device info
-            VulkanDevice::PhysicalDeviceInfo currentDeviceInfo = VulkanDevice::queryDeviceInfo(physicalDevice, extensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
+            VulkanDevice::PhysicalDeviceInfo currentDeviceInfo = VulkanDevice::queryDeviceInfo(physicalDevice, deviceExtensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
 
             // Check suitability and pick the most suitable
             int currentSuitability = VulkanDevice::rateSuitability(currentDeviceInfo);

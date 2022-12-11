@@ -18,8 +18,8 @@ private:
     /* The actual instance*/
     VkInstance instance = nullptr;
 
-    /* VulkanExtensions instance */
-    VulkanExtensions* extensions = nullptr;
+    /* VulkanInstanceExtensions instance */
+    VulkanInstanceExtensions* extensions = nullptr;
 
     /* VulkanValidationLayers instance (If requested) */
     VulkanValidationLayers* validationLayers = nullptr;
@@ -46,7 +46,7 @@ public:
 
     /* Picks a suitable device and returns it - will ensure present queue
        support if window parameter is not nullptr */
-    VulkanDevice* pickPhysicalDevice(const Window* window);
+    VulkanDevice* pickPhysicalDevice(const Settings& settings, const Window* window);
 
     /* Returns the VkInstance */
     inline VkInstance getVkInstance() const { return instance; }

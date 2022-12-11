@@ -7,9 +7,22 @@
  * VulkanExtensions class
  *****************************************************************************/
 
-const std::string VulkanExtensions::RAY_TRACING = "ray_tracing";
+void VulkanExtensions::removeSupportedExtensions(const std::vector<VkExtensionProperties>& supportedDeviceExtensions, std::vector<const char*>& extensionsList) const {
+    for (const auto& extension : supportedDeviceExtensions) {
+        for (unsigned int i = 0; i < extensionsList.size(); ++i) {
+            if (strcmp(extensionsList[i], extension.extensionName)) {
+                extensionsList.erase(extensionsList.begin() + i);
+                break;
+            }
+        }
+    }
+}
 
-void VulkanExtensions::addExtensions(const Settings& settings) {
+/*****************************************************************************
+ * VulkanInstanceExtensions class
+ *****************************************************************************/
+
+void VulkanInstanceExtensions::addExtensions(const Settings& settings) {
     // Obtain those required by GLFW
     uint32_t glfwExtensionCount;
     const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -20,30 +33,9 @@ void VulkanExtensions::addExtensions(const Settings& settings) {
     // Validation layer extension
     if (settings.debug.validationLayers)
         requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-    // Extensions required for ray tracing
-    if (settings.video.rayTracing) {
-        // Add optional extensions
-        std::vector<const char*> rayTracingExtensions = {
-            // Ray tracing extensions
-            VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
-            VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-            // Required by VK_KHR_acceleration_structure
-            VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-            VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
-            VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
-            // Required by VK_KHR_ray_tracing_pipeline
-            VK_KHR_SPIRV_1_4_EXTENSION_NAME,
-            // Required by VK_KHR_spirv_1_4,
-            VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
-            // Required for random number generation in shaders
-            VK_KHR_SHADER_CLOCK_EXTENSION_NAME,
-        };
-        optionalExtensions.insert(std::pair<std::string, std::vector<const char*>>(RAY_TRACING, rayTracingExtensions));
-    }
 }
 
-bool VulkanExtensions::checkInstanceSupport() const {
+bool VulkanInstanceExtensions::checkSupport() const {
     // Obtain a list of supported instance extensions
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -69,18 +61,42 @@ bool VulkanExtensions::checkInstanceSupport() const {
     return missingExtensionNames.empty();
 }
 
-void VulkanExtensions::removeSupportedExtensions(const std::vector<VkExtensionProperties>& supportedDeviceExtensions, std::vector<const char*>& extensionsList) const {
-    for (const auto& extension : supportedDeviceExtensions) {
-        for (unsigned int i = 0; i < extensionsList.size(); ++i) {
-            if (strcmp(extensionsList[i], extension.extensionName)) {
-                extensionsList.erase(extensionsList.begin() + i);
-                break;
-            }
-        }
+void VulkanInstanceExtensions::loadExtensions(const VulkanInstance* instance) {
+    this->vkInstance                       = instance->getVkInstance();
+    loaded_vkCreateDebugUtilsMessengerEXT  = instance->loadExternal<PFN_vkCreateDebugUtilsMessengerEXT>("vkCreateDebugUtilsMessengerEXT");
+    loaded_vkDestroyDebugUtilsMessengerEXT = instance->loadExternal<PFN_vkDestroyDebugUtilsMessengerEXT>("vkDestroyDebugUtilsMessengerEXT");
+}
+
+/*****************************************************************************
+ * VulkanDeviceExtensions class
+ *****************************************************************************/
+
+const std::string VulkanDeviceExtensions::RAY_TRACING = "ray_tracing";
+
+void VulkanDeviceExtensions::addExtensions(const Settings& settings) {
+    // Extensions required for ray tracing
+    if (settings.video.rayTracing) {
+        // Add optional extensions
+        std::vector<const char*> rayTracingExtensions = {
+            // Ray tracing extensions
+            VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+            VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+            // Required by VK_KHR_acceleration_structure
+            VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+            VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+            VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+            // Required by VK_KHR_ray_tracing_pipeline
+            VK_KHR_SPIRV_1_4_EXTENSION_NAME,
+            // Required by VK_KHR_spirv_1_4,
+            VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME,
+            // Required for random number generation in shaders
+            VK_KHR_SHADER_CLOCK_EXTENSION_NAME,
+        };
+        optionalExtensions.insert(std::pair<std::string, std::vector<const char*>>(RAY_TRACING, rayTracingExtensions));
     }
 }
 
-VulkanExtensions::PhysicalDeviceSupport VulkanExtensions::checkPhysicalDeviceSupport(VkPhysicalDevice physicalDevice) const {
+VulkanExtensions::Support VulkanDeviceExtensions::checkSupport(VkPhysicalDevice physicalDevice) const {
     // Obtain the supported extensions
     uint32_t supportedExtensionCount;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &supportedExtensionCount, nullptr);
@@ -92,7 +108,7 @@ VulkanExtensions::PhysicalDeviceSupport VulkanExtensions::checkPhysicalDeviceSup
     removeSupportedExtensions(supportedDeviceExtensions, missingExtensionNames);
 
     // Support structure to return
-    VulkanExtensions::PhysicalDeviceSupport physicalDeviceSupport = {};
+    VulkanExtensions::Support physicalDeviceSupport = {};
     physicalDeviceSupport.required                                = missingExtensionNames.empty();
 
     // Go through each set of options and determine their support too
@@ -105,10 +121,4 @@ VulkanExtensions::PhysicalDeviceSupport VulkanExtensions::checkPhysicalDeviceSup
     }
 
     return physicalDeviceSupport;
-}
-
-void VulkanExtensions::loadInstanceExtensions(const VulkanInstance* instance) {
-    this->vkInstance                       = instance->getVkInstance();
-    loaded_vkCreateDebugUtilsMessengerEXT  = instance->loadExternal<PFN_vkCreateDebugUtilsMessengerEXT>("vkCreateDebugUtilsMessengerEXT");
-    loaded_vkDestroyDebugUtilsMessengerEXT = instance->loadExternal<PFN_vkDestroyDebugUtilsMessengerEXT>("vkDestroyDebugUtilsMessengerEXT");
 }

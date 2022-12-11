@@ -5,8 +5,9 @@
  *****************************************************************************/
 
 VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo) : physicalDevice(physicalDevice) {
-    // Obtain the extension support
+    // Obtain the extensions and their support
     this->supportedExtensions = physicalDeviceInfo.supportedExtensions;
+    this->extensions          = physicalDeviceInfo.extensions;
 
     // Obtain the device queue families
     this->queueFamiliyIndices = physicalDeviceInfo.queueFamilyIndices;
@@ -31,9 +32,12 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
     //...
 }
 
-VulkanDevice::~VulkanDevice() {}
+VulkanDevice::~VulkanDevice() {
+    // Destroy extensions
+    delete extensions;
+}
 
-VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanExtensions* extensions, VkSurfaceKHR windowSurface) {
+VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VkSurfaceKHR windowSurface) {
     // Obtain the device properties
     VkPhysicalDeviceProperties physicalDeviceProps;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
@@ -44,7 +48,7 @@ VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice 
         physicalDeviceProps,
         extensions,
         // Supported extensions
-        extensions->checkPhysicalDeviceSupport(physicalDevice),
+        extensions->checkSupport(physicalDevice),
         // Supported queue families
         VulkanDevice::findQueueFamilies(physicalDevice, windowSurface),
     };

@@ -41,7 +41,7 @@ void BaseEngine::create() {
         inputManager->addListener(this);
 
         // Pick a physical device
-        vulkanInstance->pickPhysicalDevice(this->window);
+        vulkanInstance->pickPhysicalDevice(settings, this->window);
 
         // Now we are ready to create things for Vulkan
         this->created();
