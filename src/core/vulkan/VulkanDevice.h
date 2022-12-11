@@ -6,6 +6,7 @@
 #include "../Settings.h"
 #include "VulkanExtensions.h"
 #include "VulkanFeatures.h"
+#include "VulkanSwapChain.h"
 
 /*****************************************************************************
  * VulkanDevice class - Handles physical and logical devices and helps during
@@ -93,6 +94,9 @@ public:
 
         /* Queue family indices */
         QueueFamilyIndices queueFamilyIndices;
+
+        /* Swap chain support of the device */
+        VulkanSwapChain::Support swapChainSupport;
     };
 
     /* Constructor and destructor (validationLayers may be nullptr) */
@@ -102,6 +106,9 @@ public:
     /* Returns whether a set of extensions/features is supported given the
        key */
     bool isSupported(std::string key);
+
+    /* Lists the limits of this device - for debugging purposes */
+    std::string listLimits();
 
     /* Obtains device info given a physical device instance */
     static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VulkanFeatures* features, VkSurfaceKHR windowSurface);
