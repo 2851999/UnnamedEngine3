@@ -36,13 +36,16 @@ void Logger::stopFileOutput() {
 }
 
 /* Various log functions */
-void Logger::log(const std::string& message, LogType type) {
+void Logger::log(const std::string& message, const std::string& source, LogType type) {
     // Log only if within the log level
     if (shouldLog(type)) {
         // Build the message
-        std::string fullMessage = "[" + logTypeString(type) + "]" + message;
+        std::string fullMessage = "[" + logTypeString(type) + "]";
         if (includeTimeStamp)
             fullMessage = "[" + utils_time::getTimeAsString() + "]" + fullMessage;
+        if (source != "")
+            fullMessage = fullMessage + "[" + source + "]";
+        fullMessage += " " + message;
         // Output
         std::cout << fullMessage << std::endl;
         // Output to a file as well if needed

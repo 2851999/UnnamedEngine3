@@ -63,6 +63,9 @@
     <ClInclude Include="src\core\vulkan\VulkanDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\vulkan\VulkanFeatures.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.h">
@@ -108,6 +111,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\vulkan\VulkanDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\vulkan\VulkanFeatures.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -41,7 +41,10 @@ void BaseEngine::create() {
         inputManager->addListener(this);
 
         // Pick a physical device
-        vulkanInstance->pickPhysicalDevice(settings, this->window);
+        VulkanDevice* vulkanDevice = vulkanInstance->pickPhysicalDevice(settings, this->window);
+
+        // Assign the value of ray tracing to whether it is actually supported
+        settings.video.rayTracing = vulkanDevice->isSupported(VulkanDeviceExtensions::RAY_TRACING);
 
         // Now we are ready to create things for Vulkan
         this->created();
@@ -78,6 +81,9 @@ void BaseEngine::create() {
 
         // Destroy input manager
         delete this->inputManager;
+
+        // Destroy the Vulkan device
+        delete vulkanDevice;
     }
 
     // Destroy the window and Vulkan instance

@@ -34,8 +34,19 @@ public:
         bool required = false;
 
         /* Map of optional extensions and whether they are supported by the
-           device */
+           device - will only be added here if they have been requested e.g.
+           if ray tracing is disabled - it wont be present */
         std::map<std::string, bool> optionals = {};
+
+        /* Returns whether the optional extensions has a particular key */
+        inline bool has(std::string key) {
+            return optionals.find(key) != optionals.end();
+        }
+
+        /* Returns if a paricular optional extension is present and supported */
+        inline bool get(std::string key) {
+            return optionals.find(key) != optionals.end() && optionals[key];
+        }
     };
 
     /* Constructor and destructor */
@@ -108,5 +119,5 @@ public:
 
     /* Checks whether the required/optional extensions are supported by a
        physical device */
-    VulkanExtensions::Support checkSupport(VkPhysicalDevice physicalDevice) const;
+    VulkanExtensions::Support querySupport(VkPhysicalDevice physicalDevice) const;
 };

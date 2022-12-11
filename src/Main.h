@@ -90,6 +90,7 @@ void EngineTest::initialise() {
 }
 
 void EngineTest::created() {
+    Logger::log("Ray tracing support " + utils_string::str(getSettings().video.rayTracing), LogType::Information);
 }
 
 void EngineTest::update() {

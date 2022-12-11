@@ -5,6 +5,7 @@
 
 #include "../Settings.h"
 #include "VulkanExtensions.h"
+#include "VulkanFeatures.h"
 
 /*****************************************************************************
  * VulkanDevice class - Handles physical and logical devices and helps during
@@ -44,11 +45,13 @@ private:
     /* Logical device */
     VkDevice logicalDevice;
 
-    /* Extension support of this device */
+    /* Extension and feature support of this device */
     VulkanExtensions::Support supportedExtensions;
+    VulkanFeatures::Support supportedFeatures;
 
-    /* the extensions of this device */
+    /* Extensions & features of this device */
     VulkanDeviceExtensions* extensions;
+    VulkanFeatures* features;
 
     /* Queue families used by this device */
     QueueFamilyIndices queueFamiliyIndices;
@@ -73,8 +76,16 @@ public:
                  of this - it should not be deleted elsewhere */
         VulkanDeviceExtensions* extensions;
 
-        /* Physical device support */
+        /* Physical device extension support */
         VulkanExtensions::Support supportedExtensions;
+
+        /* Extensions
+           Note: Once a VulkanDevice is created, it should have complete ownership
+                 of this - it should not be deleted elsewhere */
+        VulkanFeatures* features;
+
+        /* Physical device feature support */
+        VulkanFeatures::Support supportedFeatures;
 
         /* Queue family indices */
         QueueFamilyIndices queueFamilyIndices;
@@ -84,8 +95,12 @@ public:
     VulkanDevice(PhysicalDeviceInfo& physicalDeviceInfo);
     virtual ~VulkanDevice();
 
+    /* Returns whether a set of extensions/features is supported given the
+       key */
+    bool isSupported(std::string key);
+
     /* Obtains device info given a physical device instance */
-    static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VkSurfaceKHR windowSurface);
+    static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VulkanFeatures* features, VkSurfaceKHR windowSurface);
 
     /* Rates the suitability of physical device for the engine - Higher values
        means more suitable, 0 means not suitable - if window surface given is

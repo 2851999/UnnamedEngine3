@@ -96,7 +96,7 @@ void VulkanDeviceExtensions::addExtensions(const Settings& settings) {
     }
 }
 
-VulkanExtensions::Support VulkanDeviceExtensions::checkSupport(VkPhysicalDevice physicalDevice) const {
+VulkanExtensions::Support VulkanDeviceExtensions::querySupport(VkPhysicalDevice physicalDevice) const {
     // Obtain the supported extensions
     uint32_t supportedExtensionCount;
     vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &supportedExtensionCount, nullptr);

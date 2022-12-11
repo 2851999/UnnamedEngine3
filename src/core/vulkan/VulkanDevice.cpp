@@ -5,9 +5,11 @@
  *****************************************************************************/
 
 VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo) : physicalDevice(physicalDevice) {
-    // Obtain the extensions and their support
+    // Obtain the extensions & features and their support
     this->supportedExtensions = physicalDeviceInfo.supportedExtensions;
     this->extensions          = physicalDeviceInfo.extensions;
+    this->supportedFeatures   = physicalDeviceInfo.supportedFeatures;
+    this->features            = physicalDeviceInfo.features;
 
     // Obtain the device queue families
     this->queueFamiliyIndices = physicalDeviceInfo.queueFamilyIndices;
@@ -33,11 +35,12 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
 }
 
 VulkanDevice::~VulkanDevice() {
-    // Destroy extensions
+    // Destroy extensions and features
+    delete features;
     delete extensions;
 }
 
-VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VkSurfaceKHR windowSurface) {
+VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VulkanFeatures* features, VkSurfaceKHR windowSurface) {
     // Obtain the device properties
     VkPhysicalDeviceProperties physicalDeviceProps;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
@@ -48,7 +51,10 @@ VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice 
         physicalDeviceProps,
         extensions,
         // Supported extensions
-        extensions->checkSupport(physicalDevice),
+        extensions->querySupport(physicalDevice),
+        features,
+        // Supported features
+        features->querySupport(physicalDevice),
         // Supported queue families
         VulkanDevice::findQueueFamilies(physicalDevice, windowSurface),
     };
@@ -65,8 +71,11 @@ int VulkanDevice::rateSuitability(PhysicalDeviceInfo& physicalDeviceInfo) {
 
         // If we have multiple discrete GPU's, rate based on optional extensions
         for (auto const& pair : physicalDeviceInfo.supportedExtensions.optionals) {
-            if (pair.second)
-                score += 1;
+            // Ensure the required features are also supported for the same extension (if it exists)
+            if (physicalDeviceInfo.supportedFeatures.optionals.find(pair.first) == physicalDeviceInfo.supportedFeatures.optionals.end() || physicalDeviceInfo.supportedFeatures.optionals[pair.first]) {
+                if (pair.second)
+                    score += 1;
+            }
         }
 
         // Rate based on if its a discrete GPU or not
@@ -112,4 +121,16 @@ VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevic
     }
 
     return queueFamiliyIndices;
+}
+
+bool VulkanDevice::isSupported(std::string key) {
+    // Look for the name in the extension and features
+    bool supportedInExtensions = supportedExtensions.get(key);
+    bool supportedInFeatures   = supportedFeatures.get(key);
+
+    // If present in both - both must be true, otherwise just one does
+    if (supportedExtensions.has(key) && supportedFeatures.has(key))
+        return supportedInExtensions && supportedInFeatures;
+    else
+        return supportedInExtensions || supportedInFeatures;
 }

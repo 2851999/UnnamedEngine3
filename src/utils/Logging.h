@@ -62,9 +62,9 @@ public:
     static void stopFileOutput();
 
     /* Various log functions */
-    static void log(const std::string& message, LogType type);
-    static inline void log(const std::string& message) { log(" " + message, LogType::Debug); }
-    static inline void log(const std::string& message, const std::string& source, LogType type) { log("[" + source + "] " + message, type); }
+    static void log(const std::string& message, const std::string& source, LogType type);
+    static inline void log(const std::string& message, LogType type) { log(message, "", type); }
+    static inline void log(const std::string& message) { log(message, LogType::Debug); }
     static inline void logAndThrowError(const std::string& message, const std::string& source) {
         log(message, source, LogType::Error);
         throw std::runtime_error("[" + source + "] " + message);

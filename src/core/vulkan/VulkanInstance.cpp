@@ -2,6 +2,7 @@
 
 #include "../Window.h"
 #include "VulkanExtensions.h"
+#include "VulkanFeatures.h"
 
 /*****************************************************************************
  * VulkanInstance class
@@ -81,6 +82,10 @@ VulkanDevice* VulkanInstance::pickPhysicalDevice(const Settings& settings, const
     VulkanDeviceExtensions* deviceExtensions = new VulkanDeviceExtensions();
     deviceExtensions->addExtensions(settings);
 
+    // Device features - will be handled by VulkanDevice once created
+    VulkanFeatures* deviceFeatures = new VulkanFeatures();
+    deviceFeatures->addFeatures(settings);
+
     // Obtain a list of the available devices
     uint32_t physicalDeviceCount;
     vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, nullptr);
@@ -95,7 +100,7 @@ VulkanDevice* VulkanInstance::pickPhysicalDevice(const Settings& settings, const
         // Find a suitable device
         for (const auto& physicalDevice : physicalDevices) {
             // Query the device info
-            VulkanDevice::PhysicalDeviceInfo currentDeviceInfo = VulkanDevice::queryDeviceInfo(physicalDevice, deviceExtensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
+            VulkanDevice::PhysicalDeviceInfo currentDeviceInfo = VulkanDevice::queryDeviceInfo(physicalDevice, deviceExtensions, deviceFeatures, window ? window->getVkSurface() : VK_NULL_HANDLE);
 
             // Check suitability and pick the most suitable
             int currentSuitability = VulkanDevice::rateSuitability(currentDeviceInfo);

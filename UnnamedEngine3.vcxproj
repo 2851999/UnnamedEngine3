@@ -28,6 +28,7 @@
     <ClInclude Include="src\core\Settings.h" />
     <ClInclude Include="src\core\vulkan\VulkanDevice.h" />
     <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
+    <ClInclude Include="src\core\vulkan\VulkanFeatures.h" />
     <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
@@ -44,6 +45,7 @@
     <ClCompile Include="src\core\Settings.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanDevice.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanFeatures.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanInstance.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
