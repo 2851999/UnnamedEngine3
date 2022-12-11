@@ -18,14 +18,15 @@ bool VulkanInstance::create(const Settings& settings) {
     appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     // Check the instance supports the required extensions
-    extensions.addExtensions(settings);
+    extensions = new VulkanExtensions();
+    extensions->addExtensions(settings);
 
     // For checking if instance creation was successful
     bool success = false;
 
     // Check instance support
-    if (extensions.checkInstanceSupport()) {
-        std::vector<const char*>& requiredExtensions = extensions.getRequiredExtensions();
+    if (extensions->checkInstanceSupport()) {
+        std::vector<const char*>& requiredExtensions = extensions->getRequiredExtensions();
 
         // Create info
         VkInstanceCreateInfo createInfo    = {};
@@ -62,7 +63,7 @@ bool VulkanInstance::create(const Settings& settings) {
 
     // If successful load extensions
     if (success) {
-        extensions.loadInstanceExtensions(this);
+        extensions->loadInstanceExtensions(this);
 
         // Create the debug messenger if needed
         if (settings.debug.validationLayers)
@@ -74,7 +75,7 @@ bool VulkanInstance::create(const Settings& settings) {
 
 VulkanDevice* VulkanInstance::pickPhysicalDevice(const Window* window) {
     // Chosen device
-    VkPhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
+    VulkanDevice::PhysicalDeviceInfo chosenPhysicalDeviceInfo;
 
     // Obtain a list of the available devices
     uint32_t physicalDeviceCount;
@@ -89,27 +90,33 @@ VulkanDevice* VulkanInstance::pickPhysicalDevice(const Window* window) {
 
         // Find a suitable device
         for (const auto& physicalDevice : physicalDevices) {
+            // Query the device info
+            VulkanDevice::PhysicalDeviceInfo currentDeviceInfo = VulkanDevice::queryDeviceInfo(physicalDevice, extensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
+
             // Check suitability and pick the most suitable
-            int currentSuitability = VulkanDevice::rateSuitability(physicalDevice, extensions, window ? window->getVkSurface() : VK_NULL_HANDLE);
+            int currentSuitability = VulkanDevice::rateSuitability(currentDeviceInfo);
 
             if (currentSuitability > maxSuitability) {
-                maxSuitability       = maxSuitability;
-                chosenPhysicalDevice = physicalDevice;
+                maxSuitability           = currentSuitability;
+                chosenPhysicalDeviceInfo = currentDeviceInfo;
             }
         }
 
         // Check if any device was found
-        if (chosenPhysicalDevice == VK_NULL_HANDLE)
+        if (maxSuitability == 0)
             Logger::logAndThrowError("Failed to find a suitable physical device", "VulkanInstance");
     } else
         Logger::logAndThrowError("Failed to find any physical devices with Vulkan support", "VulkanInstance");
 
-    return new VulkanDevice(chosenPhysicalDevice, window ? window->getVkSurface() : VK_NULL_HANDLE, extensions);
+    return new VulkanDevice(chosenPhysicalDeviceInfo);
 }
 
 void VulkanInstance::destroy() {
     if (validationLayers)
         delete validationLayers;
+    // Extensions must be destroyed after validation layers (as they use them)
+    if (extensions)
+        delete extensions;
     if (instance)
         vkDestroyInstance(instance, nullptr);
 }

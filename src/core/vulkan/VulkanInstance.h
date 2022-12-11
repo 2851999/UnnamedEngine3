@@ -19,7 +19,7 @@ private:
     VkInstance instance = nullptr;
 
     /* VulkanExtensions instance */
-    VulkanExtensions extensions;
+    VulkanExtensions* extensions = nullptr;
 
     /* VulkanValidationLayers instance (If requested) */
     VulkanValidationLayers* validationLayers = nullptr;

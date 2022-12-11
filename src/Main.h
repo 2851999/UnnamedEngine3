@@ -86,6 +86,7 @@ void EngineTest::initialise() {
 
     getSettings().video.maxFPS           = 60;
     getSettings().debug.validationLayers = true;
+    getSettings().video.rayTracing       = true;
 }
 
 void EngineTest::created() {

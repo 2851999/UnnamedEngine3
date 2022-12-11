@@ -56,6 +56,9 @@ struct VideoSettings {
     float aspectRatio        = 0.0f;
     // Other settings
     unsigned int maxFPS = 0;
+    // This may be reassigned after a suitable physical device is found based
+    // on its capabilities
+    bool rayTracing = false;
 };
 
 /*****************************************************************************

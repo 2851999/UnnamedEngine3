@@ -65,14 +65,14 @@ void VulkanValidationLayers::createDebugMessenger() {
     assignDebugMessengerCreateInfo(createInfo);
 
     // Create
-    if (extensions.vkCreateDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
+    if (extensions->vkCreateDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
         Logger::log("Failed to create a debug messenger", "VulkanValidationLayers", LogType::Error);
 }
 
 void VulkanValidationLayers::destroyDebugMessenger() {
     if (debugMessenger) {
         // Destroy
-        extensions.vkDestroyDebugUtilsMessengerEXT(debugMessenger, nullptr);
+        extensions->vkDestroyDebugUtilsMessengerEXT(debugMessenger, nullptr);
         debugMessenger = nullptr;
     }
 }

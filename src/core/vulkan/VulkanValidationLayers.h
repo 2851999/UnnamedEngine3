@@ -17,7 +17,7 @@ private:
     std::vector<const char*> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
     /* Extensions - required for access to the debug extension */
-    const VulkanExtensions& extensions;
+    const VulkanExtensions* extensions;
 
     /* Debug messenger */
     VkDebugUtilsMessengerEXT debugMessenger = nullptr;
@@ -30,7 +30,7 @@ private:
 
 public:
     /* Constructor and destructor */
-    VulkanValidationLayers(const VulkanExtensions& extensions) : extensions(extensions) {}
+    VulkanValidationLayers(const VulkanExtensions* extensions) : extensions(extensions) {}
     virtual ~VulkanValidationLayers() {
         destroyDebugMessenger();
     }

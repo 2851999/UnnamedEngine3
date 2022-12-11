@@ -1,24 +1,20 @@
 #include "VulkanDevice.h"
 
-#include <set>
-
 /*****************************************************************************
  * VulkanDevice class
  *****************************************************************************/
 
-VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface, const VulkanExtensions& extensions) : physicalDevice(physicalDevice) {
+VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo) : physicalDevice(physicalDevice) {
     // Obtain the extension support
-    this->extensionSupport = extensions.checkPhysicalDeviceSupport(physicalDevice);
+    this->supportedExtensions = physicalDeviceInfo.supportedExtensions;
 
     // Obtain the device queue families
-    this->queueFamiliyIndices = VulkanDevice::findQueueFamilies(physicalDevice, windowSurface);
+    this->queueFamiliyIndices = physicalDeviceInfo.queueFamilyIndices;
 
     // Need to define the queues to create
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    // Likely the same index - want to make sure we only use unique ones
-    std::set<uint32_t> uniqueQueueFamilyIndices = {queueFamiliyIndices.graphicsFamily.value()};
-    if (windowSurface)
-        uniqueQueueFamilyIndices.insert(queueFamiliyIndices.presentFamily.value());
+    // Obtain the unique queue family indices
+    std::set<uint32_t> uniqueQueueFamilyIndices = queueFamiliyIndices.getUniqueRequiredIndices();
 
     float queuePriority = 1.0f;
 
@@ -35,22 +31,28 @@ VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice, VkSurfaceKHR windowS
     //...
 }
 
-VulkanDevice::~VulkanDevice() {
-}
+VulkanDevice::~VulkanDevice() {}
 
-int VulkanDevice::rateSuitability(VkPhysicalDevice physicalDevice, const VulkanExtensions& extensions, VkSurfaceKHR windowSurface) {
+VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanExtensions* extensions, VkSurfaceKHR windowSurface) {
     // Obtain the device properties
     VkPhysicalDeviceProperties physicalDeviceProps;
     vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProps);
 
-    // Supported queue families
-    VulkanDevice::QueueFamilyIndices queueFamilyIndices = VulkanDevice::findQueueFamilies(physicalDevice, windowSurface);
+    // Return the info
+    return PhysicalDeviceInfo{
+        physicalDevice,
+        physicalDeviceProps,
+        extensions,
+        // Supported extensions
+        extensions->checkPhysicalDeviceSupport(physicalDevice),
+        // Supported queue families
+        VulkanDevice::findQueueFamilies(physicalDevice, windowSurface),
+    };
+}
 
-    // Supported extensions
-    VulkanExtensions::PhysicalDeviceSupport extensionSupport = extensions.checkPhysicalDeviceSupport(physicalDevice);
-
+int VulkanDevice::rateSuitability(PhysicalDeviceInfo& physicalDeviceInfo) {
     // Determine if suitable
-    bool suitable = queueFamilyIndices.isComplete(windowSurface != VK_NULL_HANDLE) && extensionSupport.required;
+    bool suitable = physicalDeviceInfo.queueFamilyIndices.isValid() && physicalDeviceInfo.supportedExtensions.required;
 
     if (suitable) {
         // Derive a score
@@ -58,7 +60,7 @@ int VulkanDevice::rateSuitability(VkPhysicalDevice physicalDevice, const VulkanE
         int score = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ? 8 : 1;
 
         // If we have multiple discrete GPU's, rate based on optional extensions
-        for (auto const& pair : extensionSupport.optionals) {
+        for (auto const& pair : physicalDeviceInfo.supportedExtensions.optionals) {
             if (pair.second)
                 score += 1;
         }
@@ -72,7 +74,8 @@ int VulkanDevice::rateSuitability(VkPhysicalDevice physicalDevice, const VulkanE
 
 VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface) {
     // Structure
-    VulkanDevice::QueueFamilyIndices queueFamiliyIndices;
+    VulkanDevice::QueueFamilyIndices queueFamiliyIndices = {};
+    queueFamiliyIndices.presentFamilyRequired            = windowSurface != VK_NULL_HANDLE;
 
     // Obtain the queue families supported by the device
     uint32_t availableQueueFamilyCount;
@@ -98,7 +101,7 @@ VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevic
         }
 
         // Stop if all required families have been found
-        if (queueFamiliyIndices.isComplete(windowSurface != VK_NULL_HANDLE))
+        if (queueFamiliyIndices.isValid())
             break;
 
         ++i;
