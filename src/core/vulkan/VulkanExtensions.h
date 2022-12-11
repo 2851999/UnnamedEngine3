@@ -52,9 +52,6 @@ public:
     /* Constructor and destructor */
     VulkanExtensions() {}
     virtual ~VulkanExtensions() {}
-
-    /* Returns a reference to the required extension names */
-    inline std::vector<const char*>& getRequiredExtensions() { return requiredExtensions; }
 };
 
 /*****************************************************************************
@@ -89,6 +86,9 @@ public:
     /* Loads extension methods ready for use */
     void loadExtensions(const VulkanInstance* instance);
 
+    /* Returns a reference to the required extension names */
+    inline std::vector<const char*>& getExtensions() { return requiredExtensions; }
+
     /* Various methods to call loaded external functions (VkInstance is taken as the one they were loaded for) */
     inline VkResult vkCreateDebugUtilsMessengerEXT(const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) const { return loaded_vkCreateDebugUtilsMessengerEXT(vkInstance, pCreateInfo, pAllocator, pDebugMessenger); }
     inline void vkDestroyDebugUtilsMessengerEXT(VkDebugUtilsMessengerEXT messenger, const VkAllocationCallbacks* pAllocator) const { loaded_vkDestroyDebugUtilsMessengerEXT(vkInstance, messenger, pAllocator); }
@@ -120,4 +120,8 @@ public:
     /* Checks whether the required/optional extensions are supported by a
        physical device */
     VulkanExtensions::Support querySupport(VkPhysicalDevice physicalDevice) const;
+
+    /* Assigns the appropriate parts of a VkDeviceCreateInfo to enable the
+       relevant extensions */
+    std::vector<const char*> getExtensions(VulkanExtensions::Support& supportedExtensions);
 };

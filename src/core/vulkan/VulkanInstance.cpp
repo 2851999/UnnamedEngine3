@@ -27,7 +27,7 @@ bool VulkanInstance::create(const Settings& settings) {
 
     // Check instance support
     if (extensions->checkSupport()) {
-        std::vector<const char*>& requiredExtensions = extensions->getRequiredExtensions();
+        std::vector<const char*>& requiredExtensions = extensions->getExtensions();
 
         // Create info
         VkInstanceCreateInfo createInfo    = {};

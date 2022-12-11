@@ -1,10 +1,14 @@
 #include "VulkanDevice.h"
 
+#include "../../utils/Logging.h"
+
 /*****************************************************************************
  * VulkanDevice class
  *****************************************************************************/
 
-VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo) : physicalDevice(physicalDevice) {
+VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo) {
+    this->physicalDevice = physicalDeviceInfo.device;
+
     // Obtain the extensions & features and their support
     this->supportedExtensions = physicalDeviceInfo.supportedExtensions;
     this->extensions          = physicalDeviceInfo.extensions;
@@ -31,10 +35,38 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    //...
+    // Device extensions to enable
+    std::vector<const char*> deviceExtensions = this->extensions->getExtensions(this->supportedExtensions);
+
+    // Logical device create info
+    VkDeviceCreateInfo createInfo      = {};
+    createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos       = queueCreateInfos.data();
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+    // Assign enabled features
+    this->features->assignVkDeviceCreateInfo(createInfo, this->supportedFeatures);
+
+    // Device validation layers are the same as instance ones in recent
+    // implementations so ignore here
+    createInfo.enabledLayerCount = 0;
+
+    // Create the logical device
+    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &logicalDevice) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to create a logical device", "VulkanDevice");
+
+    // Obtain the device queues requested
+    vkGetDeviceQueue(logicalDevice, queueFamiliyIndices.graphicsFamily.value(), 0, &graphicsQueue);
+    if (queueFamiliyIndices.presentFamily.has_value())
+        vkGetDeviceQueue(logicalDevice, queueFamiliyIndices.presentFamily.value(), 0, &presentQueue);
 }
 
 VulkanDevice::~VulkanDevice() {
+    // Device queues are cleaned up when the device is destroyed
+    vkDestroyDevice(logicalDevice, nullptr);
+
     // Destroy extensions and features
     delete features;
     delete extensions;

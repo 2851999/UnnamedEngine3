@@ -56,6 +56,10 @@ private:
     /* Queue families used by this device */
     QueueFamilyIndices queueFamiliyIndices;
 
+    /* Obtained queues (if assigned) */
+    VkQueue graphicsQueue = VK_NULL_HANDLE;
+    VkQueue presentQueue  = VK_NULL_HANDLE;
+
     /* Returns the queue family indices for a particular physical device - if
        window surface given is not VK_NULL_HANDLE will also look for a present
        queue family */
@@ -91,7 +95,7 @@ public:
         QueueFamilyIndices queueFamilyIndices;
     };
 
-    /* Constructor and destructor */
+    /* Constructor and destructor (validationLayers may be nullptr) */
     VulkanDevice(PhysicalDeviceInfo& physicalDeviceInfo);
     virtual ~VulkanDevice();
 

@@ -109,7 +109,7 @@ VulkanExtensions::Support VulkanDeviceExtensions::querySupport(VkPhysicalDevice 
 
     // Support structure to return
     VulkanExtensions::Support physicalDeviceSupport = {};
-    physicalDeviceSupport.required                                = missingExtensionNames.empty();
+    physicalDeviceSupport.required                  = missingExtensionNames.empty();
 
     // Go through each set of options and determine their support too
     for (auto const& pair : optionalExtensions) {
@@ -121,4 +121,14 @@ VulkanExtensions::Support VulkanDeviceExtensions::querySupport(VkPhysicalDevice 
     }
 
     return physicalDeviceSupport;
+}
+
+std::vector<const char*> VulkanDeviceExtensions::getExtensions(VulkanExtensions::Support& supportedExtensions) {
+    std::vector<const char*> extensions = requiredExtensions;
+    for (auto const& pair : supportedExtensions.optionals) {
+        if (pair.second)
+            // Want to enable
+            extensions.insert(extensions.end(), optionalExtensions[pair.first].begin(), optionalExtensions[pair.first].end());
+    }
+    return extensions;
 }
