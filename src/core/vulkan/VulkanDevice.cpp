@@ -1,8 +1,42 @@
 #include "VulkanDevice.h"
 
+#include <set>
+
 /*****************************************************************************
  * VulkanDevice class
  *****************************************************************************/
+
+VulkanDevice::VulkanDevice(VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface, const VulkanExtensions& extensions) : physicalDevice(physicalDevice) {
+    // Obtain the extension support
+    this->extensionSupport = extensions.checkPhysicalDeviceSupport(physicalDevice);
+
+    // Obtain the device queue families
+    this->queueFamiliyIndices = VulkanDevice::findQueueFamilies(physicalDevice, windowSurface);
+
+    // Need to define the queues to create
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    // Likely the same index - want to make sure we only use unique ones
+    std::set<uint32_t> uniqueQueueFamilyIndices = {queueFamiliyIndices.graphicsFamily.value()};
+    if (windowSurface)
+        uniqueQueueFamilyIndices.insert(queueFamiliyIndices.presentFamily.value());
+
+    float queuePriority = 1.0f;
+
+    // Assign the queue create infos
+    for (uint32_t queueFamilyIndex : uniqueQueueFamilyIndices) {
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
+        queueCreateInfo.queueCount              = 1;
+        queueCreateInfo.pQueuePriorities        = &queuePriority;
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+
+    //...
+}
+
+VulkanDevice::~VulkanDevice() {
+}
 
 int VulkanDevice::rateSuitability(VkPhysicalDevice physicalDevice, const VulkanExtensions& extensions, VkSurfaceKHR windowSurface) {
     // Obtain the device properties
@@ -12,12 +46,26 @@ int VulkanDevice::rateSuitability(VkPhysicalDevice physicalDevice, const VulkanE
     // Supported queue families
     VulkanDevice::QueueFamilyIndices queueFamilyIndices = VulkanDevice::findQueueFamilies(physicalDevice, windowSurface);
 
-    // Determine if suitable
-    bool suitable = queueFamilyIndices.isComplete(windowSurface != VK_NULL_HANDLE) && extensions.checkPhysicalDeviceSupport(physicalDevice);
+    // Supported extensions
+    VulkanExtensions::PhysicalDeviceSupport extensionSupport = extensions.checkPhysicalDeviceSupport(physicalDevice);
 
-    // Rate based on if its a discrete GPU or not
-    if (suitable)
-        return physicalDeviceProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ? 8 : 1;
+    // Determine if suitable
+    bool suitable = queueFamilyIndices.isComplete(windowSurface != VK_NULL_HANDLE) && extensionSupport.required;
+
+    if (suitable) {
+        // Derive a score
+        // Strongly favor a discrete GPU
+        int score = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ? 8 : 1;
+
+        // If we have multiple discrete GPU's, rate based on optional extensions
+        for (auto const& pair : extensionSupport.optionals) {
+            if (pair.second)
+                score += 1;
+        }
+
+        // Rate based on if its a discrete GPU or not
+        return score;
+    }
 
     return 0;
 }

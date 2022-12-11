@@ -18,7 +18,7 @@ bool VulkanInstance::create(const Settings& settings) {
     appInfo.apiVersion         = VK_API_VERSION_1_2;
 
     // Check the instance supports the required extensions
-    extensions.addRequired(settings);
+    extensions.addExtensions(settings);
 
     // For checking if instance creation was successful
     bool success = false;
@@ -72,7 +72,7 @@ bool VulkanInstance::create(const Settings& settings) {
     return success;
 }
 
-void VulkanInstance::pickPhysicalDevice(const Window* window) {
+VulkanDevice* VulkanInstance::pickPhysicalDevice(const Window* window) {
     // Chosen device
     VkPhysicalDevice chosenPhysicalDevice = VK_NULL_HANDLE;
 
@@ -103,6 +103,8 @@ void VulkanInstance::pickPhysicalDevice(const Window* window) {
             Logger::logAndThrowError("Failed to find a suitable physical device", "VulkanInstance");
     } else
         Logger::logAndThrowError("Failed to find any physical devices with Vulkan support", "VulkanInstance");
+
+    return new VulkanDevice(chosenPhysicalDevice, window ? window->getVkSurface() : VK_NULL_HANDLE, extensions);
 }
 
 void VulkanInstance::destroy() {

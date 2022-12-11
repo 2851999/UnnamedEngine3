@@ -46,7 +46,7 @@ public:
 
     /* Picks a suitable device and returns it - will ensure present queue
        support if window parameter is not nullptr */
-    void pickPhysicalDevice(const Window* window);
+    VulkanDevice* pickPhysicalDevice(const Window* window);
 
     /* Returns the VkInstance */
     inline VkInstance getVkInstance() const { return instance; }
