@@ -3,6 +3,7 @@
 #include <optional>
 #include <set>
 
+#include "../../utils/Logging.h"
 #include "../Settings.h"
 #include "VulkanExtensions.h"
 #include "VulkanFeatures.h"
@@ -112,6 +113,31 @@ public:
 
     /* Lists the limits of this device - for debugging purposes */
     std::string listLimits();
+
+    /* Various methods to create resources using this device */
+    inline VkImageView createImageView(VkImage image, VkImageViewType viewType, VkFormat format, VkImageAspectFlags aspectMask, uint32_t mipLevels, uint32_t baseMipLevel, uint32_t layerCount) {
+        // Create info
+        VkImageViewCreateInfo createInfo         = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+        createInfo.image                         = image;
+        createInfo.viewType                      = viewType;
+        createInfo.format                        = format;
+        createInfo.subresourceRange.aspectMask   = aspectMask;
+        createInfo.subresourceRange.levelCount   = mipLevels;
+        createInfo.subresourceRange.baseMipLevel = baseMipLevel;
+        createInfo.subresourceRange.layerCount   = layerCount;
+
+        // Attempt creation
+        VkImageView imageView;
+        if (vkCreateImageView(logicalDevice, &createInfo, nullptr, &imageView) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create image view", "VulkanDevice");
+
+        return imageView;
+    }
+
+    /* Various methods to destroy resources using this device */
+    inline void destroyImageView(VkImageView imageView) {
+        vkDestroyImageView(logicalDevice, imageView, nullptr);
+    }
 
     /* Returns the swap chain support */
     inline VulkanSwapChain::Support& getSwapChainSupport() { return swapChainSupport; }

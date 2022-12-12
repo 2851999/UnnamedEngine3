@@ -1,6 +1,5 @@
 #include "VulkanDevice.h"
 
-#include "../../utils/Logging.h"
 #include "VulkanSwapChain.h"
 
 /*****************************************************************************

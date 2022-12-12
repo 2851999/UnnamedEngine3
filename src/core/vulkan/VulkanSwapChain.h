@@ -18,10 +18,22 @@ class VulkanDevice;
 class VulkanSwapChain {
 private:
     /* Device used to create this swap chain */
-    VkDevice logicalDevice;
+    VulkanDevice* device;
 
     /* Swap chain instance */
     VkSwapchainKHR instance;
+
+    /* Surface image format */
+    VkFormat imageFormat;
+
+    /* Extent */
+    VkExtent2D extent;
+
+    /* Images in the swap chain */
+    std::vector<VkImage> images;
+
+    /* Image views for the images in the swap chain */
+    std::vector<VkImageView> imageViews;
 
     /* Helper function - returns the corresponding present mode for a given
        VSync setting */

@@ -10,14 +10,16 @@
  * VulkanSwapChain class
  *****************************************************************************/
 
-VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : logicalDevice(device->getVkLogical()) {
+VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : device(device) {
     // Obtain the device's swap chain support
     VulkanSwapChain::Support& swapChainSupport = device->getSwapChainSupport();
 
     // Choose the surface format, present mode and extent
     VkSurfaceFormatKHR surfaceFormat = VulkanSwapChain::pickSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode     = VulkanSwapChain::pickPresentMode(swapChainSupport.presentModes, settings.video);
-    VkExtent2D extent                = VulkanSwapChain::pickSwapExtent(swapChainSupport.capabilities, settings.window);
+    this->extent                     = VulkanSwapChain::pickSwapExtent(swapChainSupport.capabilities, settings.window);
+
+    this->imageFormat = surfaceFormat.format;
 
     // Assign the chosen settings
     settings.video.vSync       = VulkanSwapChain::presentModeToVSync(presentMode);
@@ -56,7 +58,7 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : log
         createInfo.queueFamilyIndexCount = 2;
         createInfo.pQueueFamilyIndices   = queueFamilyIndices;
     } else {
-        createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         // Not needed in exclusive sharing mode
         createInfo.queueFamilyIndexCount = 0;
         createInfo.pQueueFamilyIndices   = nullptr;
@@ -69,13 +71,29 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : log
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
     // Create the swap chain
-    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &instance) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(device->getVkLogical(), &createInfo, nullptr, &instance) != VK_SUCCESS)
         Logger::logAndThrowError("Failed to create swap chain", "VulkanSwapChain");
+
+    // Obtain the swap chain images - may have more than requested as can only
+    // specify the minimum number
+    vkGetSwapchainImagesKHR(device->getVkLogical(), instance, &imageCount, nullptr);
+    images.resize(imageCount);
+    vkGetSwapchainImagesKHR(device->getVkLogical(), instance, &imageCount, images.data());
+
+    // Create the image views
+    imageViews.resize(imageCount);
+
+    // Create image views
+    for (unsigned int i = 0; i < imageCount; ++i)
+        imageViews[i] = device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1);
 }
 
 VulkanSwapChain::~VulkanSwapChain() {
+    // Destroy image views
+    for (const auto& imageView : imageViews)
+        device->destroyImageView(imageView);
     if (instance)
-        vkDestroySwapchainKHR(logicalDevice, instance, nullptr);
+        vkDestroySwapchainKHR(device->getVkLogical(), instance, nullptr);
 }
 
 VulkanSwapChain::Support VulkanSwapChain::querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface) {
