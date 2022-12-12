@@ -54,6 +54,7 @@ struct VideoSettings {
     unsigned int refreshRate = 0;
     Vector2i resolution      = VideoResolution::RES_DEFAULT;
     float aspectRatio        = 0.0f;
+    int vSync                = 0;  // 1 for VSync, 2 for triple buffering, 3 for VK_PRESENT_MODE_MAILBOX_KHR
     // Other settings
     unsigned int maxFPS = 0;
     // This may be reassigned after a suitable physical device is found based

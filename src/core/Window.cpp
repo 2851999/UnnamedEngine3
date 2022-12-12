@@ -52,9 +52,9 @@ bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings
     }
 
     // Now the window should have been created, assign the settings to match
-    // what has actually been chosen
+    // what has actually been chosen (Get size in pixels)
     int width, height;
-    glfwGetWindowSize(this->instance, &width, &height);
+    glfwGetFramebufferSize(this->instance, &width, &height);
     windowSettings.width  = width;
     windowSettings.height = height;
 

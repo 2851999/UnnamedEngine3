@@ -1,6 +1,7 @@
 #include "VulkanDevice.h"
 
 #include "../../utils/Logging.h"
+#include "VulkanSwapChain.h"
 
 /*****************************************************************************
  * VulkanDevice class
@@ -14,6 +15,7 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
     this->extensions          = physicalDeviceInfo.extensions;
     this->supportedFeatures   = physicalDeviceInfo.supportedFeatures;
     this->features            = physicalDeviceInfo.features;
+    this->swapChainSupport    = physicalDeviceInfo.swapChainSupport;
 
     // Obtain the device queue families
     this->queueFamiliyIndices = physicalDeviceInfo.queueFamilyIndices;

@@ -46,6 +46,9 @@ void BaseEngine::create() {
         // Assign the value of ray tracing to whether it is actually supported
         settings.video.rayTracing = vulkanDevice->isSupported(VulkanDeviceExtensions::RAY_TRACING);
 
+        // Create swap chain
+        VulkanSwapChain* swapChain = new VulkanSwapChain(vulkanDevice, settings);
+
         // Now we are ready to create things for Vulkan
         this->created();
 
@@ -82,7 +85,8 @@ void BaseEngine::create() {
         // Destroy input manager
         delete this->inputManager;
 
-        // Destroy the Vulkan device
+        // Destroy the Vulkan swap chain and device
+        delete swapChain;
         delete vulkanDevice;
     }
 

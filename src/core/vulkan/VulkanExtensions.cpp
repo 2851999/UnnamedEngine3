@@ -74,6 +74,11 @@ void VulkanInstanceExtensions::loadExtensions(const VulkanInstance* instance) {
 const std::string VulkanDeviceExtensions::RAY_TRACING = "ray_tracing";
 
 void VulkanDeviceExtensions::addExtensions(const Settings& settings) {
+    // Add required extensions
+
+    // Required for swap chain support
+    requiredExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+
     // Extensions required for ray tracing
     if (settings.video.rayTracing) {
         // Add optional extensions

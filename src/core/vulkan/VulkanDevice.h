@@ -54,6 +54,9 @@ private:
     VulkanDeviceExtensions* extensions;
     VulkanFeatures* features;
 
+    /* Swap chain support of this device */
+    VulkanSwapChain::Support swapChainSupport;
+
     /* Queue families used by this device */
     QueueFamilyIndices queueFamiliyIndices;
 
@@ -109,6 +112,18 @@ public:
 
     /* Lists the limits of this device - for debugging purposes */
     std::string listLimits();
+
+    /* Returns the swap chain support */
+    inline VulkanSwapChain::Support& getSwapChainSupport() { return swapChainSupport; }
+
+    /* Returns the Vulkan device handles */
+    inline VkPhysicalDevice& getVkPhysical() { return physicalDevice; }
+    inline VkDevice& getVkLogical() { return logicalDevice; }
+
+    /* Returns the queue indices/queues */
+    inline QueueFamilyIndices& getQueueFamilyIndices() { return queueFamiliyIndices; }
+    inline VkQueue& getVkGraphicsQueue() { return graphicsQueue; }
+    inline VkQueue& getVkPresentQueue() { return presentQueue; }
 
     /* Obtains device info given a physical device instance */
     static PhysicalDeviceInfo queryDeviceInfo(VkPhysicalDevice physicalDevice, VulkanDeviceExtensions* extensions, VulkanFeatures* features, VkSurfaceKHR windowSurface);
