@@ -38,6 +38,9 @@
 *.out
 *.app
 
+# Compiled SPIR-V files
+*.spv
+
 # Extras
 /.vs
 /.vscode
