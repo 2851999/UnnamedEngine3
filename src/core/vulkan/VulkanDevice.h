@@ -134,9 +134,28 @@ public:
         return imageView;
     }
 
+    inline VkShaderModule createShaderModule(const std::vector<char>& code) {
+        // Create info
+        VkShaderModuleCreateInfo createInfo = {};
+        createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize                 = code.size();
+        createInfo.pCode                    = reinterpret_cast<const uint32_t*>(code.data());
+
+        // Create the shader module
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create shader module", "VulkanDevice");
+
+        return shaderModule;
+    }
+
     /* Various methods to destroy resources using this device */
     inline void destroyImageView(VkImageView imageView) {
         vkDestroyImageView(logicalDevice, imageView, nullptr);
+    }
+
+    inline void destroyShaderModule(VkShaderModule shaderModule) {
+        vkDestroyShaderModule(logicalDevice, shaderModule, nullptr);
     }
 
     /* Returns the swap chain support */

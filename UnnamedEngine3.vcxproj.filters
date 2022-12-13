@@ -69,6 +69,15 @@
     <ClInclude Include="src\core\vulkan\VulkanSwapChain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\vulkan\VulkanResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\FileUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main.h">
@@ -120,6 +129,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\vulkan\VulkanSwapChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\render\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\FileUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

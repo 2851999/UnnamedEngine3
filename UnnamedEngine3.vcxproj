@@ -25,14 +25,17 @@
     <ClInclude Include="src\core\maths\Quaternion.h" />
     <ClInclude Include="src\core\maths\Utils.h" />
     <ClInclude Include="src\core\maths\Vector.h" />
+    <ClInclude Include="src\core\render\Shader.h" />
     <ClInclude Include="src\core\Settings.h" />
     <ClInclude Include="src\core\vulkan\VulkanDevice.h" />
     <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
     <ClInclude Include="src\core\vulkan\VulkanFeatures.h" />
     <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
+    <ClInclude Include="src\core\vulkan\VulkanResource.h" />
     <ClInclude Include="src\core\vulkan\VulkanSwapChain.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\utils\FileUtils.h" />
     <ClInclude Include="src\utils\FPSUtils.h" />
     <ClInclude Include="src\utils\Logging.h" />
     <ClInclude Include="src\utils\StringUtils.h" />
@@ -43,6 +46,7 @@
     <ClCompile Include="src\core\input\Input.cpp" />
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
+    <ClCompile Include="src\core\render\Shader.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanDevice.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
@@ -52,6 +56,7 @@
     <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\Main.h" />
+    <ClCompile Include="src\utils\FileUtils.cpp" />
     <ClCompile Include="src\utils\FPSUtils.cpp" />
     <ClCompile Include="src\utils\Logging.cpp" />
     <ClCompile Include="src\utils\StringUtils.cpp" />
