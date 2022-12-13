@@ -61,7 +61,7 @@ void VulkanValidationLayers::assignDebugMessengerCreateInfo(VkDebugUtilsMessenge
 
 void VulkanValidationLayers::createDebugMessenger() {
     // Create info
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+    VkDebugUtilsMessengerCreateInfoEXT createInfo{};
     assignDebugMessengerCreateInfo(createInfo);
 
     // Create

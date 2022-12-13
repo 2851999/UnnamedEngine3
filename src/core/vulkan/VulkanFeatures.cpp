@@ -41,13 +41,13 @@ VulkanFeatures::Support VulkanFeatures::querySupport(VkPhysicalDevice device) co
 
     // Query features that require use of pNext
     if (rayTracing) {
-        VkPhysicalDeviceVulkan11Features supportedVulkan11Features                                       = {};
-        VkPhysicalDeviceBufferDeviceAddressFeatures supportedDeviceBufferAddressFeatures                 = {};
-        VkPhysicalDeviceRayTracingPipelineFeaturesKHR supportedDeviceRayTracingPipelineFeaturesKHR       = {};
-        VkPhysicalDeviceAccelerationStructureFeaturesKHR supportedDeviceAccelerationStructureFeaturesKHR = {};
-        VkPhysicalDeviceShaderClockFeaturesKHR supportedDeviceShaderClockFeaturesKHR                     = {};
-        VkPhysicalDeviceDescriptorIndexingFeatures supportedDeviceDescriptorIndexingFeatures             = {};
-        VkPhysicalDeviceHostQueryResetFeatures supportedDeviceHostQueryResetFeatures                     = {};
+        VkPhysicalDeviceVulkan11Features supportedVulkan11Features{};
+        VkPhysicalDeviceBufferDeviceAddressFeatures supportedDeviceBufferAddressFeatures{};
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR supportedDeviceRayTracingPipelineFeaturesKHR{};
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR supportedDeviceAccelerationStructureFeaturesKHR{};
+        VkPhysicalDeviceShaderClockFeaturesKHR supportedDeviceShaderClockFeaturesKHR{};
+        VkPhysicalDeviceDescriptorIndexingFeatures supportedDeviceDescriptorIndexingFeatures{};
+        VkPhysicalDeviceHostQueryResetFeatures supportedDeviceHostQueryResetFeatures{};
 
         supportedVulkan11Features.sType                       = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
         supportedDeviceBufferAddressFeatures.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
@@ -68,9 +68,9 @@ VulkanFeatures::Support VulkanFeatures::querySupport(VkPhysicalDevice device) co
             &supportedDeviceHostQueryResetFeatures,
         };
 
-        VkPhysicalDeviceFeatures2 supportedFeatures2 = {};
-        supportedFeatures2.sType                     = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        supportedFeatures2.pNext                     = setupPNext(requiredDeviceFeatures);
+        VkPhysicalDeviceFeatures2 supportedFeatures2{};
+        supportedFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        supportedFeatures2.pNext = setupPNext(requiredDeviceFeatures);
         vkGetPhysicalDeviceFeatures2(device, &supportedFeatures2);
 
         supportsRayTracing = supportedDeviceFeatures.shaderInt64 &&

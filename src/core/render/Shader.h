@@ -21,13 +21,13 @@ public:
     virtual ~Shader() { device->destroyShaderModule(module); }
 
     /* Populates a shader stage create info object with the information for
-       this module and returns it */
-    inline VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() {
-        VkPipelineShaderStageCreateInfo createInfo = {};
-        createInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        createInfo.stage                           = stage;
-        createInfo.module                          = module;
-        createInfo.pName                           = entrypoint;
+       the shader module and returns it */
+    inline VkPipelineShaderStageCreateInfo getShaderStageCreateInfo() const {
+        VkPipelineShaderStageCreateInfo createInfo{};
+        createInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        createInfo.stage  = stage;
+        createInfo.module = module;
+        createInfo.pName  = entrypoint;
 
         return createInfo;
     }
@@ -55,8 +55,16 @@ private:
 
 public:
     /* Constructor and destructor - assumes ownership of the given shaders */
-    ShaderGroup(std::vector<Shader*> shaders) : shaders(shaders) {};
+    ShaderGroup(std::vector<Shader*> shaders) : shaders(shaders) {}
     virtual ~ShaderGroup();
+
+    /* Returns a list of the VkPipelineShaderStageCreateInfo's for the shaders */
+    inline std::vector<VkPipelineShaderStageCreateInfo> getShaderStageCreateInfos() {
+        std::vector<VkPipelineShaderStageCreateInfo> createInfos;
+        for (const auto* shader : shaders)
+            createInfos.push_back(shader->getShaderStageCreateInfo());
+        return createInfos;
+    }
 
     /* Loads a group of shaders given its common path (without a file extension) */
     static ShaderGroup* load(VulkanDevice* device, const std::string& path);

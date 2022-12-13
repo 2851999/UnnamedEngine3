@@ -28,11 +28,11 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
 
     // Assign the queue create infos
     for (uint32_t queueFamilyIndex : uniqueQueueFamilyIndices) {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex        = queueFamilyIndex;
-        queueCreateInfo.queueCount              = 1;
-        queueCreateInfo.pQueuePriorities        = &queuePriority;
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
+        queueCreateInfo.queueCount       = 1;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
@@ -40,7 +40,7 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
     std::vector<const char*> deviceExtensions = this->extensions->getExtensions(this->supportedExtensions);
 
     // Logical device create info
-    VkDeviceCreateInfo createInfo      = {};
+    VkDeviceCreateInfo createInfo{};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
@@ -127,8 +127,8 @@ int VulkanDevice::rateSuitability(PhysicalDeviceInfo& physicalDeviceInfo) {
 
 VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevice physicalDevice, VkSurfaceKHR windowSurface) {
     // Structure
-    VulkanDevice::QueueFamilyIndices queueFamiliyIndices = {};
-    queueFamiliyIndices.presentFamilyRequired            = windowSurface != VK_NULL_HANDLE;
+    VulkanDevice::QueueFamilyIndices queueFamiliyIndices{};
+    queueFamiliyIndices.presentFamilyRequired = windowSurface != VK_NULL_HANDLE;
 
     // Obtain the queue families supported by the device
     uint32_t availableQueueFamilyCount;

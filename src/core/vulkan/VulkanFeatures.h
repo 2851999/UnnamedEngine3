@@ -41,7 +41,7 @@ public:
         /* Map of optional extensions and whether they are supported by the
            device - will only be added here if they have been requested e.g.
            if ray tracing is disabled - it wont be present */
-        std::map<std::string, bool> optionals = {};
+        std::map<std::string, bool> optionals{};
 
         /* Returns whether the optional features has a particular key */
         inline bool has(std::string key) {

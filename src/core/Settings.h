@@ -75,11 +75,11 @@ struct DebugSettings {
 
 struct Settings {
     /* Window settings */
-    WindowSettings window = {};
+    WindowSettings window{};
 
     /* Video settings */
-    VideoSettings video = {};
+    VideoSettings video{};
 
     /* Debug settings */
-    DebugSettings debug = {};
+    DebugSettings debug{};
 };

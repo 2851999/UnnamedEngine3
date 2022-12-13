@@ -10,7 +10,7 @@
 
 bool VulkanInstance::create(const Settings& settings) {
     // Application info
-    VkApplicationInfo appInfo  = {};
+    VkApplicationInfo appInfo{};
     appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName   = settings.window.title.c_str();
     appInfo.applicationVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -30,7 +30,7 @@ bool VulkanInstance::create(const Settings& settings) {
         std::vector<const char*>& requiredExtensions = extensions->getExtensions();
 
         // Create info
-        VkInstanceCreateInfo createInfo    = {};
+        VkInstanceCreateInfo createInfo{};
         createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo        = &appInfo;
         createInfo.enabledExtensionCount   = static_cast<uint32_t>(requiredExtensions.size());
@@ -39,7 +39,7 @@ bool VulkanInstance::create(const Settings& settings) {
         createInfo.pNext                   = nullptr;
 
         // Only used if validation layers are enabled
-        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = {};
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
         // Add validation layer info if applicable
         if (settings.debug.validationLayers) {

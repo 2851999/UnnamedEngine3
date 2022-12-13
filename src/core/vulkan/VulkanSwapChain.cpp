@@ -37,15 +37,15 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : dev
         imageCount = utils_maths::min(imageCount, swapChainSupport.capabilities.maxImageCount);
 
     // Swap chain create info
-    VkSwapchainCreateInfoKHR createInfo = {};
-    createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface                  = swapChainSupport.surface;
-    createInfo.minImageCount            = imageCount;
-    createInfo.imageFormat              = surfaceFormat.format;
-    createInfo.imageColorSpace          = surfaceFormat.colorSpace;
-    createInfo.imageExtent              = extent;
-    createInfo.imageArrayLayers         = 1;  // 1 unless VR/stereoscopic 3D
-    createInfo.imageUsage               = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    VkSwapchainCreateInfoKHR createInfo{};
+    createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface          = swapChainSupport.surface;
+    createInfo.minImageCount    = imageCount;
+    createInfo.imageFormat      = surfaceFormat.format;
+    createInfo.imageColorSpace  = surfaceFormat.colorSpace;
+    createInfo.imageExtent      = extent;
+    createInfo.imageArrayLayers = 1;  // 1 unless VR/stereoscopic 3D
+    createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     // Obtain the queue family indices and determine what sharing mode to use
     VulkanDevice::QueueFamilyIndices& indices = device->getQueueFamilyIndices();
@@ -98,8 +98,8 @@ VulkanSwapChain::~VulkanSwapChain() {
 
 VulkanSwapChain::Support VulkanSwapChain::querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface) {
     // Support details
-    VulkanSwapChain::Support support = {};
-    support.surface                  = windowSurface;
+    VulkanSwapChain::Support support{};
+    support.surface = windowSurface;
 
     // No support if there isn't a window surface
     if (windowSurface != VK_NULL_HANDLE) {

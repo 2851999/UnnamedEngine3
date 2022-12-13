@@ -113,8 +113,8 @@ VulkanExtensions::Support VulkanDeviceExtensions::querySupport(VkPhysicalDevice 
     removeSupportedExtensions(supportedDeviceExtensions, missingExtensionNames);
 
     // Support structure to return
-    VulkanExtensions::Support physicalDeviceSupport = {};
-    physicalDeviceSupport.required                  = missingExtensionNames.empty();
+    VulkanExtensions::Support physicalDeviceSupport{};
+    physicalDeviceSupport.required = missingExtensionNames.empty();
 
     // Go through each set of options and determine their support too
     for (auto const& pair : optionalExtensions) {

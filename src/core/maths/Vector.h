@@ -15,7 +15,7 @@ template <typename T, unsigned int N>
 class Vector {
 protected:
     /* Always initialise member variables */
-    T values[N] = {};
+    T values[N]{};
 
 public:
     /* Constructor */
@@ -204,9 +204,9 @@ class VectorFloat {
        This function is very specific to using floats */
     inline static Vector<float, N> slerp(const Vector<float, N>& vectorA, const Vector<float, N>& vectorB, float factor) {
         // https://keithmaggio.wordpress.com/2011/02/15/math-magician-lerp-slerp-and-nlerp/
-        float dot = vectorA.dot(vectorB);
-        dot = utils_maths::clamp(dot, -1.0f, 1.0f);
-        float theta = acosf(dot) * factor;
+        float dot                 = vectorA.dot(vectorB);
+        dot                       = utils_maths::clamp(dot, -1.0f, 1.0f);
+        float theta               = acosf(dot) * factor;
         Vector<float, N> relative = vectorB - vectorA * dot;
         relative.normalise();
         return ((vectorA * cosf(theta)) + (relative * sinf(theta)));

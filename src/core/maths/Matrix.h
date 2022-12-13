@@ -14,7 +14,7 @@ template <typename T, unsigned int N>
 class Matrix {
 protected:
     /* Always initialise member variables */
-    T values[N][N] = {};
+    T values[N][N]{};
 
 public:
     /* Constructor */

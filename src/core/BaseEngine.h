@@ -13,7 +13,7 @@
 class BaseEngine : public InputListener {
 private:
     /* Engine settings*/
-    Settings settings = {};
+    Settings settings{};
 
     /* Window instance for the engine */
     Window* window = nullptr;
