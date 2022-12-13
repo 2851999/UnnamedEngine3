@@ -2,6 +2,7 @@
 
 #include "../utils/Logging.h"
 #include "../utils/TimeUtils.h"
+#include "render/Shader.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -49,6 +50,8 @@ void BaseEngine::create() {
         // Create swap chain
         VulkanSwapChain* swapChain = new VulkanSwapChain(vulkanDevice, settings);
 
+        ShaderGroup* shaderGroup = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+
         // Now we are ready to create things for Vulkan
         this->created();
 
@@ -86,6 +89,7 @@ void BaseEngine::create() {
         delete this->inputManager;
 
         // Destroy the Vulkan swap chain and device
+        delete shaderGroup;
         delete swapChain;
         delete vulkanDevice;
     }

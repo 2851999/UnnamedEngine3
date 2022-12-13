@@ -1,6 +1,7 @@
 #include "FileUtils.h"
 
 #include <fstream>
+#include <boost/filesystem.hpp>
 
 #include "Logging.h"
 
@@ -27,4 +28,8 @@ std::vector<char> utils_file::readBinChar(const std::string& path) {
     file.close();
 
     return buffer;
+}
+
+bool utils_file::isFile(const std::string& path) {
+    return boost::filesystem::is_regular_file(path.c_str());
 }

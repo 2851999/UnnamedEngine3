@@ -10,4 +10,7 @@
 namespace utils_file {
     /* Reads a file in binary mode into a vector of chars */
     std::vector<char> readBinChar(const std::string& path);
+
+    /* Returns whether the specefied path is a file */
+    bool isFile(const std::string& path);
 };  // namespace utils_file

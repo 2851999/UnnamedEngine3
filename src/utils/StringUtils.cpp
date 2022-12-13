@@ -19,6 +19,19 @@ std::vector<std::string> utils_string::split(const std::string& strValue, char d
     return split;
 }
 
+std::vector<std::string> utils_string::splitLast(const std::string& strValue, const std::string& delimeter) {
+    std::vector<std::string> split;
+
+    // Find last occurrence
+    size_t foundPos = strValue.find_last_of(delimeter);
+
+    if (foundPos != std::string::npos)
+        split = {strValue.substr(0, foundPos), strValue.substr(foundPos + 1)};
+    else
+        split = {strValue};
+    return split;
+}
+
 /* Helper for handling errors with conversion functions */
 template <typename T>
 inline T convertToNumeric(const std::string& value, const std::string& errorMessage, T (*conversionFunc)(const std::string&, size_t*)) {
