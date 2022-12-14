@@ -61,6 +61,31 @@ void BaseEngine::create() {
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             swapChainFramebuffers[i] = new Framebuffer(renderPass, swapChain->getExtent(), swapChain->getImageView(i));
 
+        VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
+
+        VkCommandPool commandPool;
+
+        // Command pool create info
+        VkCommandPoolCreateInfo poolCreateInfo{};
+        poolCreateInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+        poolCreateInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
+
+        // Attempt to create the command pool
+        if (vkCreateCommandPool(vulkanDevice->getVkLogical(), &poolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create command pool", "BaseEngine");
+
+        VkCommandBuffer commandBuffer;
+
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool                 = commandPool;
+        allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount          = 1;
+
+        if (vkAllocateCommandBuffers(vulkanDevice->getVkLogical(), &allocInfo, &commandBuffer) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to allocate command buffer", "BaseEngine");
+
         // Now we are ready to create things for Vulkan
         this->created();
 
@@ -84,8 +109,21 @@ void BaseEngine::create() {
             // Update any game logic
             this->update();
 
+            // Begin recording to command buffer
+            VkCommandBufferBeginInfo beginInfo = {};
+            beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+            beginInfo.pInheritanceInfo         = nullptr;  // Optional
+
+            if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+                Logger::logAndThrowError("Failed to start recording to command buffer", "BaseEngine");
+
             // Perform any rendering
             this->render();
+
+            // Stop recording to command buffer
+            if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+                Logger::logAndThrowError("Failed to stop recording to command buffer", "BaseEngine");
 
             // End of frame
             this->fpsLimiter.endFrame();
@@ -96,6 +134,8 @@ void BaseEngine::create() {
 
         // Destroy input manager
         delete this->inputManager;
+
+        vkDestroyCommandPool(vulkanDevice->getVkLogical(), commandPool, nullptr);
 
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
