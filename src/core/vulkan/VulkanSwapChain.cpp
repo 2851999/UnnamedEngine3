@@ -4,6 +4,7 @@
 
 #include "../../utils/Logging.h"
 #include "../Window.h"
+#include "../render/Framebuffer.h"
 #include "VulkanDevice.h"
 
 /*****************************************************************************
@@ -94,6 +95,15 @@ VulkanSwapChain::~VulkanSwapChain() {
         device->destroyImageView(imageView);
     if (instance)
         vkDestroySwapchainKHR(device->getVkLogical(), instance, nullptr);
+}
+
+std::vector<Framebuffer*> VulkanSwapChain::createFramebuffers(RenderPass* renderPass) {
+    // Create one for each swap chain image
+    std::vector<Framebuffer*> framebuffers(imageViews.size());
+    for (unsigned int i = 0; i < framebuffers.size(); ++i)
+        framebuffers[i] = new Framebuffer(renderPass, {imageViews[i]}, extent.width, extent.height, 1);
+
+    return framebuffers;
 }
 
 VulkanSwapChain::Support VulkanSwapChain::querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface) {

@@ -141,12 +141,27 @@ public:
         createInfo.codeSize = code.size();
         createInfo.pCode    = reinterpret_cast<const uint32_t*>(code.data());
 
-        // Create the shader module
+        // Attempt creation
         VkShaderModule shaderModule;
         if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create shader module", "VulkanDevice");
 
         return shaderModule;
+    }
+
+    inline VkCommandPool createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
+        // Create info
+        VkCommandPoolCreateInfo poolCreateInfo{};
+        poolCreateInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolCreateInfo.queueFamilyIndex = queueFamilyIndex;
+        poolCreateInfo.flags            = flags;
+
+        // Attempt creation
+        VkCommandPool commandPool;
+        if (vkCreateCommandPool(logicalDevice, &poolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create command pool", "VulkanDevice");
+
+        return commandPool;
     }
 
     /* Various methods to destroy resources using this device */
@@ -156,6 +171,15 @@ public:
 
     inline void destroyShaderModule(VkShaderModule shaderModule) {
         vkDestroyShaderModule(logicalDevice, shaderModule, nullptr);
+    }
+
+    inline void destroyCommandPool(VkCommandPool commandPool) {
+        vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
+    }
+
+    /* Waits until this device finishes whatever it's doing */
+    inline void waitIdle() {
+        vkDeviceWaitIdle(logicalDevice);
     }
 
     /* Returns the swap chain support */

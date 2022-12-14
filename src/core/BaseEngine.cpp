@@ -53,27 +53,19 @@ void BaseEngine::create() {
         // Create swap chain
         VulkanSwapChain* swapChain = new VulkanSwapChain(vulkanDevice, settings);
 
-        ShaderGroup* shaderGroup               = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
-        RenderPass* renderPass                 = new RenderPass(vulkanDevice, swapChain);
-        GraphicsPipelineLayout* pipelineLayout = new GraphicsPipelineLayout(vulkanDevice);
-        GraphicsPipeline* pipeline             = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
-        std::vector<Framebuffer*> swapChainFramebuffers(swapChain->getImageCount());
-        for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
-            swapChainFramebuffers[i] = new Framebuffer(renderPass, swapChain->getExtent(), swapChain->getImageView(i));
+        ShaderGroup* shaderGroup                        = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+        RenderPass* renderPass                          = new RenderPass(vulkanDevice, swapChain);
+        GraphicsPipelineLayout* pipelineLayout          = new GraphicsPipelineLayout(vulkanDevice);
+        GraphicsPipeline* pipeline                      = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+        std::vector<Framebuffer*> swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
 
-        VkCommandPool commandPool;
-
-        // Command pool create info
-        VkCommandPoolCreateInfo poolCreateInfo{};
-        poolCreateInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-        poolCreateInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
-
-        // Attempt to create the command pool
-        if (vkCreateCommandPool(vulkanDevice->getVkLogical(), &poolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
-            Logger::logAndThrowError("Failed to create command pool", "BaseEngine");
+        // Create a command pool
+        VkCommandPool commandPool = vulkanDevice->createCommandPool(
+            queueFamilyIndices.graphicsFamily.value(),
+            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
+        );
 
         const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -88,7 +80,7 @@ void BaseEngine::create() {
         if (vkAllocateCommandBuffers(vulkanDevice->getVkLogical(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to allocate command buffer", "BaseEngine");
 
-        unsigned int imageIndex = 0;
+        unsigned int imageIndex   = 0;
         unsigned int currentFrame = 0;
 
         std::vector<VkSemaphore> imageAvailableSemaphores(MAX_FRAMES_IN_FLIGHT);
@@ -210,8 +202,8 @@ void BaseEngine::create() {
             this->fpsLimiter.endFrame();
         }
 
-        // Ensure everything has finished renderingh
-        vkDeviceWaitIdle(vulkanDevice->getVkLogical());
+        // Ensure everything has finished rendering
+        vulkanDevice->waitIdle();
 
         // Now to destroy everything
         this->destroy();
@@ -225,7 +217,7 @@ void BaseEngine::create() {
             vkDestroyFence(vulkanDevice->getVkLogical(), inFlightFences[i], nullptr);
         }
 
-        vkDestroyCommandPool(vulkanDevice->getVkLogical(), commandPool, nullptr);
+        vulkanDevice->destroyCommandPool(commandPool);
 
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)

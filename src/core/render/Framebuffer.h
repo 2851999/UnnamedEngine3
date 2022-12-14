@@ -13,7 +13,7 @@ private:
 
 public:
     /* Constructor and destructor */
-    Framebuffer(RenderPass* renderPass, VkExtent2D extent, VkImageView attachment);
+    Framebuffer(RenderPass* renderPass, std::vector<VkImageView> attachments, uint32_t width, uint32_t height, uint32_t layers);
     virtual ~Framebuffer();
 
     /* Returns the Vulkan instance */

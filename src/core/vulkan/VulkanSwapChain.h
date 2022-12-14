@@ -10,6 +10,8 @@
 // Forward declarations
 class Window;
 class VulkanDevice;
+class Framebuffer;
+class RenderPass;
 
 /*****************************************************************************
  * VulkanSwapChain class - For handling a swap chain
@@ -112,6 +114,10 @@ public:
        the actual VSync/video resolution & aspect radio chosen */
     VulkanSwapChain(VulkanDevice* device, Settings& settings);
     virtual ~VulkanSwapChain();
+
+    /* Creates and returns framebuffers for rendering to this swap chain using
+       a given render pass*/
+    std::vector<Framebuffer*> createFramebuffers(RenderPass* renderPass);
 
     /* Returns various swap chain properties */
     inline VkSwapchainKHR getVkInstance() const { return instance; }
