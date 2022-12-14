@@ -113,6 +113,9 @@ public:
     VulkanSwapChain(VulkanDevice* device, Settings& settings);
     virtual ~VulkanSwapChain();
 
+    /* Returns the swap chain's image format */
+    inline VkFormat getImageFormat() const { return imageFormat; }
+
     /* Obtains information about the swap chain support of the given device */
     static VulkanSwapChain::Support querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface);
 };
