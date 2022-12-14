@@ -1,5 +1,7 @@
 #include "RenderPass.h"
 
+#include "Framebuffer.h"
+
 /*****************************************************************************
  * RenderPass class
  *****************************************************************************/
@@ -42,4 +44,24 @@ RenderPass::RenderPass(VulkanDevice* device, VulkanSwapChain* swapChain) : Vulka
 
 RenderPass::~RenderPass() {
     vkDestroyRenderPass(device->getVkLogical(), instance, nullptr);
+}
+
+void RenderPass::begin(VkCommandBuffer commandBuffer, Framebuffer* framebuffer, VkExtent2D extent) {
+    // Render pass begin info
+    VkRenderPassBeginInfo beginInfo{};
+    beginInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    beginInfo.renderPass        = instance;
+    beginInfo.framebuffer       = framebuffer->getVkInstance();
+    beginInfo.renderArea.offset = {0, 0};
+    beginInfo.renderArea.extent = extent;
+
+    VkClearValue clearColor   = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    beginInfo.clearValueCount = 1;
+    beginInfo.pClearValues    = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void RenderPass::end(VkCommandBuffer commandBuffer) {
+    vkCmdEndRenderPass(commandBuffer);
 }

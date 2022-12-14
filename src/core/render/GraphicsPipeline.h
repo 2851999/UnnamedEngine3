@@ -35,4 +35,7 @@ public:
     /* Constructor and destructor */
     GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, VkExtent2D swapChainExtent);
     virtual ~GraphicsPipeline();
+
+    /* Binds this pipeline given the command buffer to record the command to */
+    inline void bind(VkCommandBuffer commandBuffer) { vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, instance); }
 };

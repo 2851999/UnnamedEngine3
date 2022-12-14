@@ -15,4 +15,7 @@ public:
     /* Constructor and destructor */
     Framebuffer(RenderPass* renderPass, VkExtent2D extent, VkImageView attachment);
     virtual ~Framebuffer();
+
+    /* Returns the Vulkan instance */
+    inline VkFramebuffer getVkInstance() const { return instance; }
 };

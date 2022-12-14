@@ -114,6 +114,7 @@ public:
     virtual ~VulkanSwapChain();
 
     /* Returns various swap chain properties */
+    inline VkSwapchainKHR getVkInstance() const { return instance; }
     inline VkFormat getImageFormat() const { return imageFormat; }
     inline VkExtent2D getExtent() const { return extent; }
     inline size_t getImageCount() const { return images.size(); }
