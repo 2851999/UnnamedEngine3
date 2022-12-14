@@ -75,22 +75,25 @@ void BaseEngine::create() {
         if (vkCreateCommandPool(vulkanDevice->getVkLogical(), &poolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create command pool", "BaseEngine");
 
-        VkCommandBuffer commandBuffer;
+        const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
+
+        std::vector<VkCommandBuffer> commandBuffers(MAX_FRAMES_IN_FLIGHT);
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool                 = commandPool;
         allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount          = 1;
+        allocInfo.commandBufferCount          = static_cast<uint32_t>(commandBuffers.size());
 
-        if (vkAllocateCommandBuffers(vulkanDevice->getVkLogical(), &allocInfo, &commandBuffer) != VK_SUCCESS)
+        if (vkAllocateCommandBuffers(vulkanDevice->getVkLogical(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to allocate command buffer", "BaseEngine");
 
         unsigned int imageIndex = 0;
+        unsigned int currentFrame = 0;
 
-        VkSemaphore imageAvailableSemaphore = nullptr;
-        VkSemaphore renderFinishedSemaphore = nullptr;
-        VkFence inFlightFence               = nullptr;
+        std::vector<VkSemaphore> imageAvailableSemaphores(MAX_FRAMES_IN_FLIGHT);
+        std::vector<VkSemaphore> renderFinishedSemaphores(MAX_FRAMES_IN_FLIGHT);
+        std::vector<VkFence> inFlightFences(MAX_FRAMES_IN_FLIGHT);
 
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -99,10 +102,12 @@ void BaseEngine::create() {
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;  // Start signalled as default is not and would cause 'vkWaitForFences called for fence 0x11 which has not been submitted on a Queue or during acquire next image'
 
-        if (vkCreateSemaphore(vulkanDevice->getVkLogical(), &semaphoreCreateInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(vulkanDevice->getVkLogical(), &semaphoreCreateInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
-            vkCreateFence(vulkanDevice->getVkLogical(), &fenceCreateInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
-            Logger::logAndThrowError("Failed to create synchronisation objects", "BaseEngine");
+        for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            if (vkCreateSemaphore(vulkanDevice->getVkLogical(), &semaphoreCreateInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+                vkCreateSemaphore(vulkanDevice->getVkLogical(), &semaphoreCreateInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+                vkCreateFence(vulkanDevice->getVkLogical(), &fenceCreateInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+                Logger::logAndThrowError("Failed to create synchronisation objects for a frame", "BaseEngine");
+            }
         }
 
         // Now we are ready to create things for Vulkan
@@ -129,13 +134,13 @@ void BaseEngine::create() {
             this->update();
 
             // Aquire the next swap chain image
-            vkAcquireNextImageKHR(vulkanDevice->getVkLogical(), swapChain->getVkInstance(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);  // Image index is next in chain
+            vkAcquireNextImageKHR(vulkanDevice->getVkLogical(), swapChain->getVkInstance(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);  // Image index is next in chain
 
             // Wait for all fences (VK_TRUE)
-            vkWaitForFences(vulkanDevice->getVkLogical(), 1, &inFlightFence, VK_TRUE, std::numeric_limits<uint64_t>::max());
-            vkResetFences(vulkanDevice->getVkLogical(), 1, &inFlightFence);  // Unlike semaphores have to reset after use
+            vkWaitForFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+            vkResetFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame]);  // Unlike semaphores have to reset after use
 
-            vkResetCommandBuffer(commandBuffer, 0);
+            vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
             // Begin recording to command buffer
             VkCommandBufferBeginInfo beginInfo = {};
@@ -143,43 +148,43 @@ void BaseEngine::create() {
             beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
             beginInfo.pInheritanceInfo         = nullptr;  // Optional
 
-            if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+            if (vkBeginCommandBuffer(commandBuffers[currentFrame], &beginInfo) != VK_SUCCESS)
                 Logger::logAndThrowError("Failed to start recording to command buffer", "BaseEngine");
 
-            renderPass->begin(commandBuffer, swapChainFramebuffers[imageIndex], swapChain->getExtent());
+            renderPass->begin(commandBuffers[currentFrame], swapChainFramebuffers[imageIndex], swapChain->getExtent());
 
-            pipeline->bind(commandBuffer);
+            pipeline->bind(commandBuffers[currentFrame]);
 
             // Perform any rendering
             this->render();
 
-            vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+            vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
 
-            renderPass->end(commandBuffer);
+            renderPass->end(commandBuffers[currentFrame]);
 
             // Stop recording to command buffer
-            if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+            if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS)
                 Logger::logAndThrowError("Failed to stop recording to command buffer", "BaseEngine");
 
             VkSubmitInfo submitInfo = {};
             submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-            VkSemaphore waitSemaphores[]      = {imageAvailableSemaphore};
+            VkSemaphore waitSemaphores[]      = {imageAvailableSemaphores[currentFrame]};
             VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
             submitInfo.waitSemaphoreCount     = 1;
             submitInfo.pWaitSemaphores        = waitSemaphores;
             submitInfo.pWaitDstStageMask      = waitStages;
             submitInfo.commandBufferCount     = 1;
-            submitInfo.pCommandBuffers        = &commandBuffer;
+            submitInfo.pCommandBuffers        = &commandBuffers[currentFrame];
 
-            VkSemaphore signalSemaphores[]  = {renderFinishedSemaphore};
+            VkSemaphore signalSemaphores[]  = {renderFinishedSemaphores[currentFrame]};
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores    = signalSemaphores;
 
             // Fence added here to be signalled when command buffer finishes executing
-            VkResult result = vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFence);
+            VkResult result = vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]);
             if (result != VK_SUCCESS)  // vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS
-                Logger::log("Failed to submit draw command buffer, result " + utils_string::str(result), "Vulkan", LogType::Error);
+                Logger::logAndThrowError("Failed to submit draw command buffer, result " + utils_string::str(result), "BaseEngine");
 
             VkPresentInfoKHR presentInfo   = {};
             presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -194,16 +199,18 @@ void BaseEngine::create() {
 
             result = vkQueuePresentKHR(vulkanDevice->getVkPresentQueue(), &presentInfo);
             if (result != VK_SUCCESS)
-                Logger::log("Failed to present image from queue " + utils_string::str(result), "Vulkan", LogType::Error);
+                Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
 
             // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
             imageIndex = (imageIndex + 1) % swapChain->getImageCount();
+
+            currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
             // End of frame
             this->fpsLimiter.endFrame();
         }
 
-        // Ensure everything has finished rendering
+        // Ensure everything has finished renderingh
         vkDeviceWaitIdle(vulkanDevice->getVkLogical());
 
         // Now to destroy everything
@@ -212,9 +219,11 @@ void BaseEngine::create() {
         // Destroy input manager
         delete this->inputManager;
 
-        vkDestroySemaphore(vulkanDevice->getVkLogical(), imageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(vulkanDevice->getVkLogical(), renderFinishedSemaphore, nullptr);
-        vkDestroyFence(vulkanDevice->getVkLogical(), inFlightFence, nullptr);
+        for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            vkDestroySemaphore(vulkanDevice->getVkLogical(), imageAvailableSemaphores[i], nullptr);
+            vkDestroySemaphore(vulkanDevice->getVkLogical(), renderFinishedSemaphores[i], nullptr);
+            vkDestroyFence(vulkanDevice->getVkLogical(), inFlightFences[i], nullptr);
+        }
 
         vkDestroyCommandPool(vulkanDevice->getVkLogical(), commandPool, nullptr);
 
