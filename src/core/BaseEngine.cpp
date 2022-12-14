@@ -2,6 +2,7 @@
 
 #include "../utils/Logging.h"
 #include "../utils/TimeUtils.h"
+#include "render/Framebuffer.h"
 #include "render/GraphicsPipeline.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
@@ -56,6 +57,9 @@ void BaseEngine::create() {
         RenderPass* renderPass                 = new RenderPass(vulkanDevice, swapChain);
         GraphicsPipelineLayout* pipelineLayout = new GraphicsPipelineLayout(vulkanDevice);
         GraphicsPipeline* pipeline             = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+        std::vector<Framebuffer*> swapChainFramebuffers(swapChain->getImageCount());
+        for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
+            swapChainFramebuffers[i] = new Framebuffer(renderPass, swapChain->getExtent(), swapChain->getImageView(i));
 
         // Now we are ready to create things for Vulkan
         this->created();
@@ -94,6 +98,8 @@ void BaseEngine::create() {
         delete this->inputManager;
 
         // Destroy the Vulkan swap chain and device
+        for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
+            delete swapChainFramebuffers[i];
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
