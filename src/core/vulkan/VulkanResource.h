@@ -15,4 +15,7 @@ public:
     /* Constructor and destructor */
     VulkanResource(VulkanDevice* device) : device(device) {}
     virtual ~VulkanResource() {}
+
+    /* Returns the device this resource was created using */
+    VulkanDevice* getDevice() { return device; }
 };

@@ -85,6 +85,9 @@ ShaderGroup* ShaderGroup::load(VulkanDevice* device, const std::string& path) {
             foundShaders.push_back(Shader::load(device, currentPath));
     }
 
+    if (foundShaders.size() == 0)
+        Logger::logAndThrowError("No shaders found with the path '" + path + "'", "ShaderGroup");
+
     return new ShaderGroup(foundShaders);
 }
 

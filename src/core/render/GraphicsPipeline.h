@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../vulkan/VulkanResource.h"
+#include "RenderPass.h"
+#include "Shader.h"
 
 /*****************************************************************************
  * GraphicsPipelineLayout class - Handles a graphics pipeline layout
@@ -15,6 +17,9 @@ public:
     /* Constructor and destructor */
     GraphicsPipelineLayout(VulkanDevice* device);
     virtual ~GraphicsPipelineLayout();
+
+    /* Returns the Vulkan instance */
+    inline VkPipelineLayout getVkInstance() { return instance; }
 };
 
 /*****************************************************************************
@@ -28,6 +33,6 @@ private:
 
 public:
     /* Constructor and destructor */
-    GraphicsPipeline(VulkanDevice* device, VkExtent2D swapChainExtent);
+    GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, VkExtent2D swapChainExtent);
     virtual ~GraphicsPipeline();
 };

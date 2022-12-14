@@ -26,7 +26,7 @@ GraphicsPipelineLayout::~GraphicsPipelineLayout() {
  * GraphicsPipeline class
  *****************************************************************************/
 
-GraphicsPipeline::GraphicsPipeline(VulkanDevice* device, VkExtent2D swapChainExtent) : VulkanResource(device) {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, VkExtent2D swapChainExtent) : VulkanResource(renderPass->getDevice()) {
     // Vertex input state create info
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -64,7 +64,7 @@ GraphicsPipeline::GraphicsPipeline(VulkanDevice* device, VkExtent2D swapChainExt
     viewportStateInfo.pScissors     = &scissor;
 
     // Rasterisation state create info
-    VkPipelineRasterizationStateCreateInfo rasterisationStateInfo;
+    VkPipelineRasterizationStateCreateInfo rasterisationStateInfo{};
     rasterisationStateInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterisationStateInfo.depthClampEnable        = VK_FALSE;              // If true fragments clamped rather than discarded - required GPU feature
     rasterisationStateInfo.rasterizerDiscardEnable = VK_FALSE;              // If true discards everything - wouldn't render to framebuffer
@@ -110,7 +110,35 @@ GraphicsPipeline::GraphicsPipeline(VulkanDevice* device, VkExtent2D swapChainExt
     colourBlendStateInfo.blendConstants[1]                   = 0.0f;
     colourBlendStateInfo.blendConstants[2]                   = 0.0f;
     colourBlendStateInfo.blendConstants[3]                   = 0.0f;
+
+    // Obtain the shader stages
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStageInfos = shaderGroup->getShaderStageCreateInfos();
+
+    // Graphics pipeline create info
+    VkGraphicsPipelineCreateInfo createInfo{};
+    createInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    createInfo.stageCount          = static_cast<uint32_t>(shaderStageInfos.size());
+    createInfo.pStages             = shaderStageInfos.data();
+    createInfo.pVertexInputState   = &vertexInputInfo;
+    createInfo.pInputAssemblyState = &inputAssemblyInfo;
+    createInfo.pViewportState      = &viewportStateInfo;
+    createInfo.pRasterizationState = &rasterisationStateInfo;
+    createInfo.pMultisampleState   = &multisampleStateInfo;
+    createInfo.pDepthStencilState  = VK_NULL_HANDLE;
+    createInfo.pColorBlendState    = &colourBlendStateInfo;
+    createInfo.pDynamicState       = VK_NULL_HANDLE;
+    createInfo.layout              = layout->getVkInstance();
+    createInfo.renderPass          = renderPass->getVkInstance();
+    createInfo.subpass             = 0;
+
+    createInfo.basePipelineHandle = VK_NULL_HANDLE;
+    createInfo.basePipelineIndex  = -1;
+
+    // Create
+    if (vkCreateGraphicsPipelines(device->getVkLogical(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &instance) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to create graphics pipeline", "GraphicsPipeline");
 }
 
 GraphicsPipeline::~GraphicsPipeline() {
+    vkDestroyPipeline(device->getVkLogical(), instance, nullptr);
 }

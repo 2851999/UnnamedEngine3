@@ -200,6 +200,8 @@ VkPresentModeKHR VulkanSwapChain::pickPresentMode(const std::vector<VkPresentMod
             return VK_PRESENT_MODE_FIFO_KHR;
         }
     }
+
+    return VK_PRESENT_MODE_FIFO_KHR;
 }
 
 VkExtent2D VulkanSwapChain::pickSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const WindowSettings& windowSettings) {

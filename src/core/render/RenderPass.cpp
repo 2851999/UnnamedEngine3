@@ -35,6 +35,7 @@ RenderPass::RenderPass(VulkanDevice* device, VulkanSwapChain* swapChain) : Vulka
     createInfo.subpassCount    = 1;
     createInfo.pSubpasses      = &subpassDescription;
 
+    // Create
     if (vkCreateRenderPass(device->getVkLogical(), &createInfo, nullptr, &instance) != VK_SUCCESS)
         Logger::logAndThrowError("Failed to create render pass", "RenderPass");
 }

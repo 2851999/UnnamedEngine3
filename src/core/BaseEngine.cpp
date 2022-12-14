@@ -2,6 +2,8 @@
 
 #include "../utils/Logging.h"
 #include "../utils/TimeUtils.h"
+#include "render/GraphicsPipeline.h"
+#include "render/RenderPass.h"
 #include "render/Shader.h"
 
 /*****************************************************************************
@@ -50,7 +52,10 @@ void BaseEngine::create() {
         // Create swap chain
         VulkanSwapChain* swapChain = new VulkanSwapChain(vulkanDevice, settings);
 
-        ShaderGroup* shaderGroup = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+        ShaderGroup* shaderGroup               = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+        RenderPass* renderPass                 = new RenderPass(vulkanDevice, swapChain);
+        GraphicsPipelineLayout* pipelineLayout = new GraphicsPipelineLayout(vulkanDevice);
+        GraphicsPipeline* pipeline             = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
 
         // Now we are ready to create things for Vulkan
         this->created();
@@ -89,6 +94,9 @@ void BaseEngine::create() {
         delete this->inputManager;
 
         // Destroy the Vulkan swap chain and device
+        delete pipeline;
+        delete pipelineLayout;
+        delete renderPass;
         delete shaderGroup;
         delete swapChain;
         delete vulkanDevice;
