@@ -126,6 +126,9 @@ void BaseEngine::create() {
             this->update();
 
             drawFrame();
+
+            // End of frame
+            this->fpsLimiter.endFrame();
         }
 
         // Ensure everything has finished rendering
@@ -163,7 +166,6 @@ void BaseEngine::create() {
     // Terminate GLFW
     glfwTerminate();
 }
-
 
 void BaseEngine::drawFrame() {
     uint32_t imageIndex;
@@ -228,8 +230,7 @@ void BaseEngine::drawFrame() {
     submitInfo.pSignalSemaphores    = signalSemaphores;
 
     // Fence added here to be signalled when command buffer finishes executing
-    result = vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]);
-    if (result != VK_SUCCESS)  // vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS
+    if (vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
         Logger::logAndThrowError("Failed to submit draw command buffer, result " + utils_string::str(result), "BaseEngine");
 
     VkPresentInfoKHR presentInfo{};
@@ -250,12 +251,8 @@ void BaseEngine::drawFrame() {
         Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
     }
 
-    if (result != VK_ERROR_OUT_OF_DATE_KHR && result == VK_SUBOPTIMAL_KHR && framebufferResized)
-        // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
-        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-    // End of frame
-    this->fpsLimiter.endFrame();
+    // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void BaseEngine::recreateSwapChain() {
