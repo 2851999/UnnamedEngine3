@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "input/Input.h"
 #include "vulkan/VulkanInstance.h"
+#include "vulkan/VulkanSwapChain.h"
 
 // TODO: Remove these
 class ShaderGroup;
@@ -15,7 +16,7 @@ class GraphicsPipelineLayout;
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
-class BaseEngine : public InputListener, WindowResizeListener {
+class BaseEngine : public InputListener, VulkanSwapChainListener {
 private:
     /* Engine settings*/
     Settings settings{};
@@ -47,7 +48,6 @@ private:
     RenderPass* renderPass;
     GraphicsPipeline* pipeline;
     std::vector<Framebuffer*> swapChainFramebuffers;
-    bool framebufferResized = false;
 
 public:
     /* Constructor and destructors */
@@ -75,8 +75,7 @@ public:
 
     /* TODO: Move??? */
     void drawFrame();
-    void recreateSwapChain();
-    void onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) override;
+    void onSwapChainRecreation() override;
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }

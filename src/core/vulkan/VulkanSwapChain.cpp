@@ -11,15 +11,19 @@
  * VulkanSwapChain class
  *****************************************************************************/
 
-VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : device(device) {
-    create(settings);
+VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Window* window, Settings& settings) : device(device), window(window), settings(settings) {
+    // Listen for resize events
+    window->addResizeListener(this);
+
+    // Create the swap chain
+    create();
 }
 
 VulkanSwapChain::~VulkanSwapChain() {
     destroy();
 }
 
-void VulkanSwapChain::create(Settings& settings) {
+void VulkanSwapChain::create() {
     // Obtain the device's swap chain support
     VulkanSwapChain::Support& swapChainSupport = device->getSwapChainSupport();
 
@@ -95,6 +99,72 @@ void VulkanSwapChain::create(Settings& settings) {
     // Create image views
     for (unsigned int i = 0; i < imageCount; ++i)
         imageViews[i] = device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1);
+}
+
+bool VulkanSwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence) {
+    // Acquire the next swap chain image
+    VkResult result = vkAcquireNextImageKHR(device->getVkLogical(), instance, UINT64_MAX, semaphore, fence, &imageIndex);
+
+    // Check for an out of date swap chain
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+        recreate();
+        // Should stop rendering this frame - swap chain is being recreated
+        return false;
+    } else if (result != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to acquire swap chain image", "BaseEngine");
+    return true;
+}
+
+bool VulkanSwapChain::presentImage(uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores) {
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = waitSemaphoreCount;
+    presentInfo.pWaitSemaphores    = pWaitSemaphores;
+
+    VkSwapchainKHR swapChains[] = {instance};
+    presentInfo.swapchainCount  = 1;
+    presentInfo.pSwapchains     = swapChains;
+    presentInfo.pImageIndices   = &imageIndex;
+
+    VkResult result = vkQueuePresentKHR(device->getVkPresentQueue(), &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+        recreate();
+        // Should stop rendering this frame - swap chain is being recreated
+        return false;
+    } else if (result != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
+    return true;
+}
+
+void VulkanSwapChain::recreate() {
+    // Pause if window is minimised
+    int width, height;
+    glfwGetFramebufferSize(window->getInstance(), &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(window->getInstance(), &width, &height);
+        glfwWaitEvents();
+    }
+
+    // Update the window size
+    settings.window.width  = static_cast<unsigned int>(width);
+    settings.window.height = static_cast<unsigned int>(height);
+
+    // Ensure the device has finished what ever it is doing before destroying
+    // resources
+    device->waitIdle();
+
+    // Re-query swap chain support
+    device->requerySwapChainSupport(window->getVkSurface());
+
+    // Now recreate the swap chain
+    destroy();
+    create();
+
+    // Trigger recreation events for anything else that needs recreating
+    callOnSwapChainRecreation();
+
+    // Reset in case this triggered it
+    framebufferResized = false;
 }
 
 void VulkanSwapChain::destroy() {

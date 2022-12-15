@@ -40,9 +40,6 @@ void BaseEngine::create() {
     }
 
     if (initSuccess) {
-        // Add a resize listener for the window
-        this->window->addResizeListener(this);
-
         // Create the input manager
         inputManager = new InputManager(this->window);
         inputManager->addListener(this);
@@ -54,7 +51,10 @@ void BaseEngine::create() {
         settings.video.rayTracing = vulkanDevice->isSupported(VulkanDeviceExtensions::RAY_TRACING);
 
         // Create swap chain
-        swapChain = new VulkanSwapChain(vulkanDevice, settings);
+        swapChain = new VulkanSwapChain(vulkanDevice, window, settings);
+
+        // Listen for recreation events
+        swapChain->addListener(this);
 
         shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
@@ -168,22 +168,12 @@ void BaseEngine::create() {
 }
 
 void BaseEngine::drawFrame() {
-    uint32_t imageIndex;
-
     // Wait for all fences (VK_TRUE)
     vkWaitForFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-    // Acquire the next swap chain image
-    VkResult result = vkAcquireNextImageKHR(vulkanDevice->getVkLogical(), swapChain->getVkInstance(), UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);  // Image index is next in chain
-
-    // Check for an out of date swapchain
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-        recreateSwapChain();
-        // Should try again in next draw frame, not this one
+    // Acquire the next swap chain image (don't render if recreating swap chain)
+    if (! swapChain->acquireNextImage(imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE))
         return;
-    } else if (result != VK_SUCCESS) {
-        Logger::logAndThrowError("Failed to acquire swap chain image", "BaseEngine");
-    }
 
     // Only reset if actually submitting work
     vkResetFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame]);  // Unlike semaphores have to reset after use
@@ -199,7 +189,7 @@ void BaseEngine::drawFrame() {
     if (vkBeginCommandBuffer(commandBuffers[currentFrame], &beginInfo) != VK_SUCCESS)
         Logger::logAndThrowError("Failed to start recording to command buffer", "BaseEngine");
 
-    renderPass->begin(commandBuffers[currentFrame], swapChainFramebuffers[imageIndex], swapChain->getExtent());
+    renderPass->begin(commandBuffers[currentFrame], swapChainFramebuffers[swapChain->getCurrentImageIndex()], swapChain->getExtent());
 
     pipeline->bind(commandBuffers[currentFrame]);
 
@@ -231,61 +221,25 @@ void BaseEngine::drawFrame() {
 
     // Fence added here to be signalled when command buffer finishes executing
     if (vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
-        Logger::logAndThrowError("Failed to submit draw command buffer, result " + utils_string::str(result), "BaseEngine");
+        Logger::logAndThrowError("Failed to submit draw command buffer", "BaseEngine");
 
-    VkPresentInfoKHR presentInfo{};
-    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores    = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = {swapChain->getVkInstance()};
-    presentInfo.swapchainCount  = 1;
-    presentInfo.pSwapchains     = swapChains;
-    presentInfo.pImageIndices   = &imageIndex;
-
-    result = vkQueuePresentKHR(vulkanDevice->getVkPresentQueue(), &presentInfo);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
-        recreateSwapChain();
+    // Present the next image in the swap chain
+    if (! swapChain->presentImage(1, signalSemaphores))
         return;
-    } else if (result != VK_SUCCESS) {
-        Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
-    }
 
     // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void BaseEngine::recreateSwapChain() {
-    // Pause if window is minimised
-    int width, height;
-    glfwGetFramebufferSize(window->getInstance(), &width, &height);
-    while (width == 0 || height == 0) {
-        glfwGetFramebufferSize(window->getInstance(), &width, &height);
-        glfwWaitEvents();
-    }
-
-    settings.window.width  = static_cast<unsigned int>(width);
-    settings.window.height = static_cast<unsigned int>(height);
-
-    vulkanDevice->waitIdle();
-
+void BaseEngine::onSwapChainRecreation() {
     delete pipeline;
     delete renderPass;
 
     for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
         delete swapChainFramebuffers[i];
 
-    vulkanDevice->requerySwapChainSupport(window->getVkSurface());
-    swapChain->recreate(settings);
-
     // Render pass only needs destroying due to format changing e.g. going from non-hdr to hdr monitor
     renderPass            = new RenderPass(vulkanDevice, swapChain);
     pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
     swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
-
-    framebufferResized = false;
-}
-
-void BaseEngine::onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) {
-    framebufferResized = true;
 }

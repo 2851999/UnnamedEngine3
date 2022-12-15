@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 
 #include "../Settings.h"
+#include "../WindowResizeListener.h"
 
 // Forward declarations
 class Window;
@@ -14,13 +15,35 @@ class Framebuffer;
 class RenderPass;
 
 /*****************************************************************************
+ * VulkanSwapChainListener class - Interface that can be used to obtain swap
+ *                                 chain recreation events
+ *****************************************************************************/
+
+class VulkanSwapChainListener {
+public:
+    /* Constructor and destructor */
+    VulkanSwapChainListener() {}
+    virtual ~VulkanSwapChainListener() {}
+
+    /* Called when the swap chain has just been recreated */
+    virtual void onSwapChainRecreation() {}
+};
+
+/*****************************************************************************
  * VulkanSwapChain class - For handling a swap chain
  *****************************************************************************/
 
-class VulkanSwapChain {
+class VulkanSwapChain : WindowResizeListener {
 private:
     /* Device used to create this swap chain */
     VulkanDevice* device;
+
+    /* Window this swap chain is for */
+    Window* window;
+
+    /* Reference to the settings used to create this swap chain (will update
+       video settings on swap chain recreation) */
+    Settings& settings;
 
     /* Swap chain instance */
     VkSwapchainKHR instance;
@@ -37,12 +60,31 @@ private:
     /* Image views for the images in the swap chain */
     std::vector<VkImageView> imageViews;
 
+    /* Current image index (required when displaying images)*/
+    uint32_t imageIndex = 0;
+
+    /* Keeps track if the window has been resized (not all drivers will return
+       VK_ERROR_OUT_OF_DATE_KHR when the window is resized) */
+    bool framebufferResized = false;
+
+    /* Listeners for swap chain recreation events */
+    std::vector<VulkanSwapChainListener*> listeners;
+
     /* Creates this swap chain - the settings will be modified to reflect
        the actual VSync/video resolution & aspect radio chosen */
-    void create(Settings& settings);
+    void create();
 
     /* Destroys resources ready for swap chain recreation */
     void destroy();
+
+    /* Trigger swap chain recreation when the window is resized */
+    void onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) override { framebufferResized = true; }
+
+    /* Calls the onSwapChainRecreation function for all added listeners */
+    inline void callOnSwapChainRecreation() {
+        for (const auto& listener : listeners)
+            listener->onSwapChainRecreation();
+    }
 
     /* Helper function - returns the corresponding present mode for a given
        VSync setting */
@@ -119,24 +161,36 @@ public:
 
     /* Constructor and destructor - the settings will be modified to reflect
        the actual VSync/video resolution & aspect radio chosen */
-    VulkanSwapChain(VulkanDevice* device, Settings& settings);
+    VulkanSwapChain(VulkanDevice* device, Window* window, Settings& settings);
     virtual ~VulkanSwapChain();
 
+    /* Should be called to acquire a swap chain image at the start of a frame
+       - will return a boolean value representing whether rendering should go
+       ahead (will be false if swap chain will be recreated) */
+    bool acquireNextImage(VkSemaphore semaphore, VkFence fence);
+
+    /* Should be called to present a swap chain image at the end of a frame
+       - will return a boolean value representing whether rendering should go
+       ahead (will be false if swap chain will be recreated) */
+    bool presentImage(uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores);
+
     /* Recreates this swap chain (for when it becomes out of date) */
-    inline void recreate(Settings& settings) {
-        destroy();
-        create(settings);
-    }
+    void recreate();
 
     /* Creates and returns framebuffers for rendering to this swap chain using
        a given render pass*/
     std::vector<Framebuffer*> createFramebuffers(RenderPass* renderPass);
+
+    /* Adds/removes a swap chain listener by value */
+    inline void addListener(VulkanSwapChainListener* listener) { listeners.push_back(listener); }
+    inline void removeListener(VulkanSwapChainListener* listener) { listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end()); }
 
     /* Returns various swap chain properties */
     inline VkSwapchainKHR getVkInstance() const { return instance; }
     inline VkFormat getImageFormat() const { return imageFormat; }
     inline VkExtent2D getExtent() const { return extent; }
     inline size_t getImageCount() const { return images.size(); }
+    inline uint32_t getCurrentImageIndex() { return imageIndex; }
 
     /* Returns the given image view */
     inline VkImageView getImageView(unsigned int index) { return imageViews[index]; }

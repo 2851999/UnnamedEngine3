@@ -38,6 +38,7 @@
     <ClInclude Include="src\core\vulkan\VulkanSwapChain.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
+    <ClInclude Include="src\core\WindowResizeListener.h" />
     <ClInclude Include="src\utils\FileUtils.h" />
     <ClInclude Include="src\utils\FPSUtils.h" />
     <ClInclude Include="src\utils\Logging.h" />

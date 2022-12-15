@@ -2,21 +2,7 @@
 
 #include "Settings.h"
 #include "vulkan/VulkanInstance.h"
-
-/*****************************************************************************
- * WindowResizeListener class - Interface that can be used to obtain window
- *                              resizing events
- *****************************************************************************/
-
-class WindowResizeListener {
-public:
-    /* Constructor and destructor */
-    WindowResizeListener() {}
-    virtual ~WindowResizeListener() {}
-
-    /* Window resize event */
-    virtual void onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) {}
-};
+#include "WindowResizeListener.h"
 
 /*****************************************************************************
  * Window - Handles a window using GLFW
