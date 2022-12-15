@@ -15,7 +15,7 @@ class GraphicsPipelineLayout;
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
-class BaseEngine : public InputListener {
+class BaseEngine : public InputListener, WindowResizeListener {
 private:
     /* Engine settings*/
     Settings settings{};
@@ -34,6 +34,12 @@ private:
     VulkanInstance* vulkanInstance = nullptr;
 
     /* TODO: Remove*/
+    const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
+    unsigned int currentFrame               = 0;
+    std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
     VulkanDevice* vulkanDevice;
     VulkanSwapChain* swapChain;
     ShaderGroup* shaderGroup;
@@ -41,6 +47,7 @@ private:
     RenderPass* renderPass;
     GraphicsPipeline* pipeline;
     std::vector<Framebuffer*> swapChainFramebuffers;
+    bool framebufferResized = false;
 
 public:
     /* Constructor and destructors */
@@ -67,7 +74,9 @@ public:
     virtual void destroy() {}
 
     /* TODO: Move??? */
+    void drawFrame();
     void recreateSwapChain();
+    void onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) override;
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }

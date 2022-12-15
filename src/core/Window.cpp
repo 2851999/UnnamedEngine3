@@ -6,7 +6,8 @@
  * Window
  *****************************************************************************/
 
-bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings, const VulkanInstance* vulkanInstance) {
+bool Window::create(VideoSettings& videoSettings, const VulkanInstance* vulkanInstance) {
+    this->windowSettings = windowSettings;
     this->vulkanInstance = vulkanInstance->getVkInstance();
 
     // Setup the default parameters
@@ -55,8 +56,8 @@ bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings
     // what has actually been chosen (Get size in pixels)
     int width, height;
     glfwGetFramebufferSize(this->instance, &width, &height);
-    windowSettings.width  = width;
-    windowSettings.height = height;
+    windowSettings.width  = static_cast<unsigned int>(width);
+    windowSettings.height = static_cast<unsigned int>(height);
 
     // Center the window by default (if not fullscreen)
     if (! monitor)
@@ -67,6 +68,13 @@ bool Window::create(WindowSettings& windowSettings, VideoSettings& videoSettings
         Logger::log("Failed to create the window surface", "Window", LogType::Error);
         return false;
     }
+
+    // Assign the window pointer to be of this type (useful for checking
+    // the window given in events)
+    glfwSetWindowUserPointer(instance, this);
+
+    // Assign the resize callback
+    glfwSetFramebufferSizeCallback(instance, framebufferSizeCallback);
 
     // If reached this point, assume creation was successful
     return true;
@@ -83,4 +91,22 @@ void Window::center(int windowWidth, int windowHeight) {
     // Obtain the video mode of the primary monitor (window should be created there by default)
     const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
     setPosition(mode->width / 2 - windowWidth / 2, mode->height / 2 - windowHeight / 2);
+}
+
+void Window::callOnWindowResized() {
+    unsigned int oldWidth  = windowSettings.width;
+    unsigned int oldHeight = windowSettings.height;
+    int width, height;
+    glfwGetFramebufferSize(this->instance, &width, &height);
+    windowSettings.width  = static_cast<unsigned int>(width);
+    windowSettings.height = static_cast<unsigned int>(height);
+
+    for (const auto& listener : resizeListeners)
+        listener->onWindowResized(oldWidth, oldHeight, windowSettings.width, windowSettings.height);
+}
+
+void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    // Obtain the window instance
+    Window* engineWindow = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+    engineWindow->callOnWindowResized();
 }
