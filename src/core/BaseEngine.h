@@ -75,7 +75,7 @@ public:
 
     /* TODO: Move??? */
     void drawFrame();
-    void onSwapChainRecreation() override;
+    void onSwapChainRecreation(float scaleX, float scaleY) override;
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }

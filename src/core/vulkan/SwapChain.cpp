@@ -1,9 +1,10 @@
+#include "SwapChain.h"
+
 #include <algorithm>
 
 #include "../../utils/Logging.h"
 #include "../Window.h"
 #include "../render/Framebuffer.h"
-#include "SwapChain.h"
 #include "VulkanDevice.h"
 
 /*****************************************************************************
@@ -16,6 +17,9 @@ SwapChain::SwapChain(VulkanDevice* device, Window* window, Settings& settings) :
 
     // Create the swap chain
     create();
+
+    // Assign the initial extent size
+    lastExtent = extent;
 }
 
 SwapChain::~SwapChain() {
@@ -159,8 +163,14 @@ void SwapChain::recreate() {
     destroy();
     create();
 
+    // Work out change in size
+    float scaleX = static_cast<float>(extent.width) / static_cast<float>(lastExtent.width);
+    float scaleY = static_cast<float>(extent.height) / static_cast<float>(lastExtent.height);
+
+    lastExtent = extent;
+
     // Trigger recreation events for anything else that needs recreating
-    callOnSwapChainRecreation();
+    callOnSwapChainRecreation(scaleX, scaleY);
 
     // Reset in case this triggered it
     framebufferResized = false;

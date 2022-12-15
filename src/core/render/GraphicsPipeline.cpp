@@ -26,14 +26,11 @@ GraphicsPipelineLayout::~GraphicsPipelineLayout() {
  * GraphicsPipeline class
  *****************************************************************************/
 
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup) {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup), width(width), height(height) {
     create();
 }
 
 void GraphicsPipeline::create() {
-    // Obtain the swap chain extent
-    VkExtent2D swapChainExtent = swapChain->getExtent();
-
     // Vertex input state create info
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -52,15 +49,15 @@ void GraphicsPipeline::create() {
     VkViewport viewport{};
     viewport.x        = 0.0f;
     viewport.y        = 0.0f;
-    viewport.width    = static_cast<float>(swapChainExtent.width);
-    viewport.height   = static_cast<float>(swapChainExtent.height);
+    viewport.width    = static_cast<float>(width);
+    viewport.height   = static_cast<float>(height);
     viewport.minDepth = 0.0;
     viewport.maxDepth = 1.0f;
 
     // Scissor
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = swapChainExtent;
+    scissor.extent = {width, height};
 
     // Viewport state create info
     VkPipelineViewportStateCreateInfo viewportStateInfo{};

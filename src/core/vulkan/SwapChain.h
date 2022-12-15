@@ -26,7 +26,7 @@ public:
     virtual ~SwapChainListener() {}
 
     /* Called when the swap chain has just been recreated */
-    virtual void onSwapChainRecreation() {}
+    virtual void onSwapChainRecreation(float scaleX, float scaleY) {}
 };
 
 /*****************************************************************************
@@ -53,6 +53,9 @@ private:
 
     /* Extent */
     VkExtent2D extent;
+
+    /* Last extent (Before recreation) */
+    VkExtent2D lastExtent;
 
     /* Images in the swap chain */
     std::vector<VkImage> images;
@@ -81,9 +84,9 @@ private:
     void onWindowResized(unsigned int oldWidth, unsigned int oldHeight, unsigned int newWidth, unsigned int newHeight) override { framebufferResized = true; }
 
     /* Calls the onSwapChainRecreation function for all added listeners */
-    inline void callOnSwapChainRecreation() {
+    inline void callOnSwapChainRecreation(float scaleX, float scaleY) {
         for (const auto& listener : listeners)
-            listener->onSwapChainRecreation();
+            listener->onSwapChainRecreation(scaleX, scaleY);
     }
 
     /* Helper function - returns the corresponding present mode for a given

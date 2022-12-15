@@ -27,5 +27,5 @@ public:
     }
 
     /* Called when the swap chain has just been recreated */
-    virtual void onSwapChainRecreation() override {}
+    virtual void onSwapChainRecreation(float scaleX, float scaleY) override {}
 };

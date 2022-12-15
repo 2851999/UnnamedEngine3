@@ -59,7 +59,7 @@ void BaseEngine::create() {
         shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
         renderPass            = new RenderPass(vulkanDevice, swapChain);
-        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain);
+        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), swapChain);
         swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
@@ -231,7 +231,7 @@ void BaseEngine::drawFrame() {
     currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-void BaseEngine::onSwapChainRecreation() {
+void BaseEngine::onSwapChainRecreation(float scaleX, float scaleY) {
     for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
         delete swapChainFramebuffers[i];
 
