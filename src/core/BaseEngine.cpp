@@ -59,7 +59,7 @@ void BaseEngine::create() {
         shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
         renderPass            = new RenderPass(vulkanDevice, swapChain);
-        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain);
         swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
@@ -232,14 +232,10 @@ void BaseEngine::drawFrame() {
 }
 
 void BaseEngine::onSwapChainRecreation() {
-    delete pipeline;
-    delete renderPass;
-
     for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
         delete swapChainFramebuffers[i];
 
     // Render pass only needs destroying due to format changing e.g. going from non-hdr to hdr monitor
-    renderPass            = new RenderPass(vulkanDevice, swapChain);
-    pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+    renderPass->recreate(swapChain);
     swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 }

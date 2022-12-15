@@ -26,7 +26,14 @@ GraphicsPipelineLayout::~GraphicsPipelineLayout() {
  * GraphicsPipeline class
  *****************************************************************************/
 
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, VkExtent2D swapChainExtent) : VulkanResource(renderPass->getDevice()) {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup) {
+    create();
+}
+
+void GraphicsPipeline::create() {
+    // Obtain the swap chain extent
+    VkExtent2D swapChainExtent = swapChain->getExtent();
+
     // Vertex input state create info
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -139,6 +146,6 @@ GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* r
         Logger::logAndThrowError("Failed to create graphics pipeline", "GraphicsPipeline");
 }
 
-GraphicsPipeline::~GraphicsPipeline() {
+void GraphicsPipeline::destroy() {
     vkDestroyPipeline(device->getVkLogical(), instance, nullptr);
 }

@@ -9,6 +9,7 @@
 
 class VulkanResource {
 protected:
+    /* Device used in creation and destruction */
     VulkanDevice* device;
 
 public:

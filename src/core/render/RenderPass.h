@@ -14,10 +14,22 @@ private:
     /* Render pass instance */
     VkRenderPass instance;
 
+    /* Creates this render pass */
+    void create(SwapChain* swapChain);
+
+    /* Destroys this render pass */
+    void destroy();
+
 public:
     /* Constructor and destructor */
     RenderPass(VulkanDevice* device, SwapChain* swapChain);
-    virtual ~RenderPass();
+    virtual ~RenderPass() { destroy(); }
+
+    /* Recreates this render pass */
+    inline void recreate(SwapChain* swapChain) {
+        destroy();
+        create(swapChain);
+    }
 
     /* Begins/ends this render pass given the command buffer to submit the
        commands to */

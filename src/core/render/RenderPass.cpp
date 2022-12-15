@@ -7,6 +7,34 @@
  *****************************************************************************/
 
 RenderPass::RenderPass(VulkanDevice* device, SwapChain* swapChain) : VulkanResource(device) {
+    create(swapChain);
+}
+
+void RenderPass::destroy() {
+    vkDestroyRenderPass(device->getVkLogical(), instance, nullptr);
+}
+
+void RenderPass::begin(VkCommandBuffer commandBuffer, Framebuffer* framebuffer, VkExtent2D extent) {
+    // Render pass begin info
+    VkRenderPassBeginInfo beginInfo{};
+    beginInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    beginInfo.renderPass        = instance;
+    beginInfo.framebuffer       = framebuffer->getVkInstance();
+    beginInfo.renderArea.offset = {0, 0};
+    beginInfo.renderArea.extent = extent;
+
+    VkClearValue clearColor   = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    beginInfo.clearValueCount = 1;
+    beginInfo.pClearValues    = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void RenderPass::end(VkCommandBuffer commandBuffer) {
+    vkCmdEndRenderPass(commandBuffer);
+}
+
+void RenderPass::create(SwapChain* swapChain) {
     // Attachment description for the colour buffer
     VkAttachmentDescription colourAttachmentDescription{};
     colourAttachmentDescription.format         = swapChain->getImageFormat();
@@ -40,28 +68,4 @@ RenderPass::RenderPass(VulkanDevice* device, SwapChain* swapChain) : VulkanResou
     // Create
     if (vkCreateRenderPass(device->getVkLogical(), &createInfo, nullptr, &instance) != VK_SUCCESS)
         Logger::logAndThrowError("Failed to create render pass", "RenderPass");
-}
-
-RenderPass::~RenderPass() {
-    vkDestroyRenderPass(device->getVkLogical(), instance, nullptr);
-}
-
-void RenderPass::begin(VkCommandBuffer commandBuffer, Framebuffer* framebuffer, VkExtent2D extent) {
-    // Render pass begin info
-    VkRenderPassBeginInfo beginInfo{};
-    beginInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    beginInfo.renderPass        = instance;
-    beginInfo.framebuffer       = framebuffer->getVkInstance();
-    beginInfo.renderArea.offset = {0, 0};
-    beginInfo.renderArea.extent = extent;
-
-    VkClearValue clearColor   = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    beginInfo.clearValueCount = 1;
-    beginInfo.pClearValues    = &clearColor;
-
-    vkCmdBeginRenderPass(commandBuffer, &beginInfo, VK_SUBPASS_CONTENTS_INLINE);
-}
-
-void RenderPass::end(VkCommandBuffer commandBuffer) {
-    vkCmdEndRenderPass(commandBuffer);
 }
