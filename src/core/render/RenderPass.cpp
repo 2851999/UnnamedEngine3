@@ -6,7 +6,7 @@
  * RenderPass class
  *****************************************************************************/
 
-RenderPass::RenderPass(VulkanDevice* device, VulkanSwapChain* swapChain) : VulkanResource(device) {
+RenderPass::RenderPass(VulkanDevice* device, SwapChain* swapChain) : VulkanResource(device) {
     // Attachment description for the colour buffer
     VkAttachmentDescription colourAttachmentDescription{};
     colourAttachmentDescription.format         = swapChain->getImageFormat();

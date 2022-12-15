@@ -15,25 +15,25 @@ class Framebuffer;
 class RenderPass;
 
 /*****************************************************************************
- * VulkanSwapChainListener class - Interface that can be used to obtain swap
- *                                 chain recreation events
+ * SwapChainListener class - Interface that can be used to obtain swap chain
+                             recreation events
  *****************************************************************************/
 
-class VulkanSwapChainListener {
+class SwapChainListener {
 public:
     /* Constructor and destructor */
-    VulkanSwapChainListener() {}
-    virtual ~VulkanSwapChainListener() {}
+    SwapChainListener() {}
+    virtual ~SwapChainListener() {}
 
     /* Called when the swap chain has just been recreated */
     virtual void onSwapChainRecreation() {}
 };
 
 /*****************************************************************************
- * VulkanSwapChain class - For handling a swap chain
+ * SwapChain class - For handling a swap chain
  *****************************************************************************/
 
-class VulkanSwapChain : WindowResizeListener {
+class SwapChain : WindowResizeListener {
 private:
     /* Device used to create this swap chain */
     VulkanDevice* device;
@@ -68,7 +68,7 @@ private:
     bool framebufferResized = false;
 
     /* Listeners for swap chain recreation events */
-    std::vector<VulkanSwapChainListener*> listeners;
+    std::vector<SwapChainListener*> listeners;
 
     /* Creates this swap chain - the settings will be modified to reflect
        the actual VSync/video resolution & aspect radio chosen */
@@ -161,8 +161,8 @@ public:
 
     /* Constructor and destructor - the settings will be modified to reflect
        the actual VSync/video resolution & aspect radio chosen */
-    VulkanSwapChain(VulkanDevice* device, Window* window, Settings& settings);
-    virtual ~VulkanSwapChain();
+    SwapChain(VulkanDevice* device, Window* window, Settings& settings);
+    virtual ~SwapChain();
 
     /* Should be called to acquire a swap chain image at the start of a frame
        - will return a boolean value representing whether rendering should go
@@ -182,8 +182,8 @@ public:
     std::vector<Framebuffer*> createFramebuffers(RenderPass* renderPass);
 
     /* Adds/removes a swap chain listener by value */
-    inline void addListener(VulkanSwapChainListener* listener) { listeners.push_back(listener); }
-    inline void removeListener(VulkanSwapChainListener* listener) { listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end()); }
+    inline void addListener(SwapChainListener* listener) { listeners.push_back(listener); }
+    inline void removeListener(SwapChainListener* listener) { listeners.erase(std::remove(listeners.begin(), listeners.end(), listener), listeners.end()); }
 
     /* Returns various swap chain properties */
     inline VkSwapchainKHR getVkInstance() const { return instance; }
@@ -196,5 +196,5 @@ public:
     inline VkImageView getImageView(unsigned int index) { return imageViews[index]; }
 
     /* Obtains information about the swap chain support of the given device */
-    static VulkanSwapChain::Support querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface);
+    static SwapChain::Support querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface);
 };

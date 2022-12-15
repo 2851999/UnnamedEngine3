@@ -51,7 +51,7 @@ void BaseEngine::create() {
         settings.video.rayTracing = vulkanDevice->isSupported(VulkanDeviceExtensions::RAY_TRACING);
 
         // Create swap chain
-        swapChain = new VulkanSwapChain(vulkanDevice, window, settings);
+        swapChain = new SwapChain(vulkanDevice, window, settings);
 
         // Listen for recreation events
         swapChain->addListener(this);

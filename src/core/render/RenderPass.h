@@ -16,7 +16,7 @@ private:
 
 public:
     /* Constructor and destructor */
-    RenderPass(VulkanDevice* device, VulkanSwapChain* swapChain);
+    RenderPass(VulkanDevice* device, SwapChain* swapChain);
     virtual ~RenderPass();
 
     /* Begins/ends this render pass given the command buffer to submit the

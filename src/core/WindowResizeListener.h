@@ -3,7 +3,7 @@
 /*****************************************************************************
  * WindowResizeListener class - Interface that can be used to obtain window
  *                              resizing events (needs different header due
- *                              to forward declarations in VulkanSwapChain)
+ *                              to forward declarations in SwapChain)
  *****************************************************************************/
 
 class WindowResizeListener {

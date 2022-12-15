@@ -35,7 +35,7 @@
     <ClInclude Include="src\core\vulkan\VulkanFeatures.h" />
     <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
     <ClInclude Include="src\core\vulkan\VulkanResource.h" />
-    <ClInclude Include="src\core\vulkan\VulkanSwapChain.h" />
+    <ClInclude Include="src\core\vulkan\SwapChain.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\core\WindowResizeListener.h" />
@@ -59,7 +59,7 @@
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanFeatures.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanInstance.cpp" />
-    <ClCompile Include="src\core\vulkan\VulkanSwapChain.cpp" />
+    <ClCompile Include="src\core\vulkan\SwapChain.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanValidationLayers.cpp" />
     <ClCompile Include="src\core\Window.cpp" />
     <ClCompile Include="src\Main.h" />

@@ -1,17 +1,16 @@
-#include "VulkanSwapChain.h"
-
 #include <algorithm>
 
 #include "../../utils/Logging.h"
 #include "../Window.h"
 #include "../render/Framebuffer.h"
+#include "SwapChain.h"
 #include "VulkanDevice.h"
 
 /*****************************************************************************
- * VulkanSwapChain class
+ * SwapChain class
  *****************************************************************************/
 
-VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Window* window, Settings& settings) : device(device), window(window), settings(settings) {
+SwapChain::SwapChain(VulkanDevice* device, Window* window, Settings& settings) : device(device), window(window), settings(settings) {
     // Listen for resize events
     window->addResizeListener(this);
 
@@ -19,23 +18,23 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Window* window, Settings&
     create();
 }
 
-VulkanSwapChain::~VulkanSwapChain() {
+SwapChain::~SwapChain() {
     destroy();
 }
 
-void VulkanSwapChain::create() {
+void SwapChain::create() {
     // Obtain the device's swap chain support
-    VulkanSwapChain::Support& swapChainSupport = device->getSwapChainSupport();
+    SwapChain::Support& swapChainSupport = device->getSwapChainSupport();
 
     // Choose the surface format, present mode and extent
-    VkSurfaceFormatKHR surfaceFormat = VulkanSwapChain::pickSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode     = VulkanSwapChain::pickPresentMode(swapChainSupport.presentModes, settings.video);
-    this->extent                     = VulkanSwapChain::pickSwapExtent(swapChainSupport.capabilities, settings.window);
+    VkSurfaceFormatKHR surfaceFormat = SwapChain::pickSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode     = SwapChain::pickPresentMode(swapChainSupport.presentModes, settings.video);
+    this->extent                     = SwapChain::pickSwapExtent(swapChainSupport.capabilities, settings.window);
 
     this->imageFormat = surfaceFormat.format;
 
     // Assign the chosen settings
-    settings.video.vSync       = VulkanSwapChain::presentModeToVSync(presentMode);
+    settings.video.vSync       = SwapChain::presentModeToVSync(presentMode);
     settings.video.resolution  = Vector2i(extent.width, extent.height);
     settings.video.aspectRatio = static_cast<float>(extent.width) / static_cast<float>(extent.height);
 
@@ -85,7 +84,7 @@ void VulkanSwapChain::create() {
 
     // Create the swap chain
     if (vkCreateSwapchainKHR(device->getVkLogical(), &createInfo, nullptr, &instance) != VK_SUCCESS)
-        Logger::logAndThrowError("Failed to create swap chain", "VulkanSwapChain");
+        Logger::logAndThrowError("Failed to create swap chain", "SwapChain");
 
     // Obtain the swap chain images - may have more than requested as can only
     // specify the minimum number
@@ -101,7 +100,7 @@ void VulkanSwapChain::create() {
         imageViews[i] = device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1);
 }
 
-bool VulkanSwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence) {
+bool SwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence) {
     // Acquire the next swap chain image
     VkResult result = vkAcquireNextImageKHR(device->getVkLogical(), instance, UINT64_MAX, semaphore, fence, &imageIndex);
 
@@ -111,11 +110,11 @@ bool VulkanSwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence) {
         // Should stop rendering this frame - swap chain is being recreated
         return false;
     } else if (result != VK_SUCCESS)
-        Logger::logAndThrowError("Failed to acquire swap chain image", "BaseEngine");
+        Logger::logAndThrowError("Failed to acquire swap chain image", "SwapChain");
     return true;
 }
 
-bool VulkanSwapChain::presentImage(uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores) {
+bool SwapChain::presentImage(uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores) {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = waitSemaphoreCount;
@@ -132,11 +131,11 @@ bool VulkanSwapChain::presentImage(uint32_t waitSemaphoreCount, const VkSemaphor
         // Should stop rendering this frame - swap chain is being recreated
         return false;
     } else if (result != VK_SUCCESS)
-        Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
+        Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "SwapChain");
     return true;
 }
 
-void VulkanSwapChain::recreate() {
+void SwapChain::recreate() {
     // Pause if window is minimised
     int width, height;
     glfwGetFramebufferSize(window->getInstance(), &width, &height);
@@ -167,7 +166,7 @@ void VulkanSwapChain::recreate() {
     framebufferResized = false;
 }
 
-void VulkanSwapChain::destroy() {
+void SwapChain::destroy() {
     // Destroy image views
     for (const auto& imageView : imageViews)
         device->destroyImageView(imageView);
@@ -176,7 +175,7 @@ void VulkanSwapChain::destroy() {
         vkDestroySwapchainKHR(device->getVkLogical(), instance, nullptr);
 }
 
-std::vector<Framebuffer*> VulkanSwapChain::createFramebuffers(RenderPass* renderPass) {
+std::vector<Framebuffer*> SwapChain::createFramebuffers(RenderPass* renderPass) {
     // Create one for each swap chain image
     std::vector<Framebuffer*> framebuffers(imageViews.size());
     for (unsigned int i = 0; i < framebuffers.size(); ++i)
@@ -185,9 +184,9 @@ std::vector<Framebuffer*> VulkanSwapChain::createFramebuffers(RenderPass* render
     return framebuffers;
 }
 
-VulkanSwapChain::Support VulkanSwapChain::querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface) {
+SwapChain::Support SwapChain::querySupport(VkPhysicalDevice device, VkSurfaceKHR windowSurface) {
     // Support details
-    VulkanSwapChain::Support support{};
+    SwapChain::Support support{};
     support.surface = windowSurface;
 
     // No support if there isn't a window surface
@@ -214,7 +213,7 @@ VulkanSwapChain::Support VulkanSwapChain::querySupport(VkPhysicalDevice device, 
     return support;
 }
 
-int VulkanSwapChain::scoreSurfaceFormat(const VkSurfaceFormatKHR& surfaceFormat) {
+int SwapChain::scoreSurfaceFormat(const VkSurfaceFormatKHR& surfaceFormat) {
     // Prefer SRGB with VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
     int score = 0;
 
@@ -225,7 +224,7 @@ int VulkanSwapChain::scoreSurfaceFormat(const VkSurfaceFormatKHR& surfaceFormat)
     return score;
 }
 
-VkSurfaceFormatKHR VulkanSwapChain::pickSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+VkSurfaceFormatKHR SwapChain::pickSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     // Return the only available one if we dont have a choice
     if (availableFormats.size() == 1)
         return availableFormats[0];
@@ -236,7 +235,7 @@ VkSurfaceFormatKHR VulkanSwapChain::pickSurfaceFormat(const std::vector<VkSurfac
 
         // Go through and rank, replacing the best only if it surpasses
         for (const auto& availableFormat : availableFormats) {
-            int score = VulkanSwapChain::scoreSurfaceFormat(availableFormat);
+            int score = SwapChain::scoreSurfaceFormat(availableFormat);
 
             if (score > maxScore) {
                 maxScore    = score;
@@ -245,13 +244,13 @@ VkSurfaceFormatKHR VulkanSwapChain::pickSurfaceFormat(const std::vector<VkSurfac
         }
 
         if (maxScore == 0)
-            Logger::log("Picking a non-preferred swap chain surface format", "VulkanSwapChain", LogType::Debug);
+            Logger::log("Picking a non-preferred swap chain surface format", "SwapChain", LogType::Debug);
 
         return currentBest;
     }
 }
 
-bool VulkanSwapChain::isPresentModeAvailable(VkPresentModeKHR presentMode, const std::vector<VkPresentModeKHR>& availablePresentModes) {
+bool SwapChain::isPresentModeAvailable(VkPresentModeKHR presentMode, const std::vector<VkPresentModeKHR>& availablePresentModes) {
     for (const auto& availablePresentMode : availablePresentModes) {
         if (availablePresentMode == presentMode)
             return true;
@@ -259,7 +258,7 @@ bool VulkanSwapChain::isPresentModeAvailable(VkPresentModeKHR presentMode, const
     return false;
 }
 
-VkPresentModeKHR VulkanSwapChain::pickPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, const VideoSettings& videoSettings) {
+VkPresentModeKHR SwapChain::pickPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes, const VideoSettings& videoSettings) {
     // Find the current requested mode
     VkPresentModeKHR requestedMode = vSyncToPresentMode(videoSettings.vSync);
 
@@ -270,22 +269,22 @@ VkPresentModeKHR VulkanSwapChain::pickPresentMode(const std::vector<VkPresentMod
         // Requested mode not available, try and choose next best
         if (requestedMode == VK_PRESENT_MODE_FIFO_KHR)
             // Supposed to be guaranteed
-            Logger::log("VK_PRESENT_MODE_FIFO_KHR is not available when it should be guaranteed", "VulkanSwapChain", LogType::Error);
+            Logger::log("VK_PRESENT_MODE_FIFO_KHR is not available when it should be guaranteed", "SwapChain", LogType::Error);
         else if (requestedMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
             // Try triple buffering instead (since also doesn't limit frame rate)
             if (isPresentModeAvailable(VK_PRESENT_MODE_MAILBOX_KHR, availablePresentModes)) {
-                Logger::log("VK_PRESENT_MODE_IMMEDIATE_KHR is not supported so using VK_PRESENT_MODE_MAILBOX_KHR instead", "VulkanSwapChain", LogType::Debug);
+                Logger::log("VK_PRESENT_MODE_IMMEDIATE_KHR is not supported so using VK_PRESENT_MODE_MAILBOX_KHR instead", "SwapChain", LogType::Debug);
                 return VK_PRESENT_MODE_MAILBOX_KHR;
             } else {
-                Logger::log("Neither VK_PRESENT_MODE_IMMEDIATE_KHR nor VK_PRESENT_MODE_MAILBOX_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "VulkanSwapChain", LogType::Debug);
+                Logger::log("Neither VK_PRESENT_MODE_IMMEDIATE_KHR nor VK_PRESENT_MODE_MAILBOX_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "SwapChain", LogType::Debug);
                 return VK_PRESENT_MODE_FIFO_KHR;
             }
         } else if (requestedMode == VK_PRESENT_MODE_MAILBOX_KHR) {
             // Fall back to double buffering
-            Logger::log("VK_PRESENT_MODE_MAILBOX_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "VulkanSwapChain", LogType::Information);
+            Logger::log("VK_PRESENT_MODE_MAILBOX_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "SwapChain", LogType::Information);
             return VK_PRESENT_MODE_FIFO_KHR;
         } else if (requestedMode == VK_PRESENT_MODE_FIFO_RELAXED_KHR) {
-            Logger::log("VK_PRESENT_MODE_FIFO_RELAXED_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "VulkanSwapChain", LogType::Debug);
+            Logger::log("VK_PRESENT_MODE_FIFO_RELAXED_KHR is not supported so using VK_PRESENT_MODE_FIFO_KHR instead", "SwapChain", LogType::Debug);
             return VK_PRESENT_MODE_FIFO_KHR;
         }
     }
@@ -293,7 +292,7 @@ VkPresentModeKHR VulkanSwapChain::pickPresentMode(const std::vector<VkPresentMod
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D VulkanSwapChain::pickSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const WindowSettings& windowSettings) {
+VkExtent2D SwapChain::pickSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const WindowSettings& windowSettings) {
     // If these values are equal then dont have the value is not given and we
     // must choose the value ourselves
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())

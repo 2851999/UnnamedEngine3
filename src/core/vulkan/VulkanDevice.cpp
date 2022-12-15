@@ -1,6 +1,6 @@
 #include "VulkanDevice.h"
 
-#include "VulkanSwapChain.h"
+#include "SwapChain.h"
 
 /*****************************************************************************
  * VulkanDevice class
@@ -91,7 +91,7 @@ VulkanDevice::PhysicalDeviceInfo VulkanDevice::queryDeviceInfo(VkPhysicalDevice 
         // Supported queue families
         VulkanDevice::findQueueFamilies(physicalDevice, windowSurface),
         // Swap chain support
-        VulkanSwapChain::querySupport(physicalDevice, windowSurface),
+        SwapChain::querySupport(physicalDevice, windowSurface),
     };
 }
 

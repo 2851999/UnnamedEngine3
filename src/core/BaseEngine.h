@@ -4,8 +4,8 @@
 #include "Settings.h"
 #include "Window.h"
 #include "input/Input.h"
+#include "vulkan/SwapChain.h"
 #include "vulkan/VulkanInstance.h"
-#include "vulkan/VulkanSwapChain.h"
 
 // TODO: Remove these
 class ShaderGroup;
@@ -16,7 +16,7 @@ class GraphicsPipelineLayout;
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
-class BaseEngine : public InputListener, VulkanSwapChainListener {
+class BaseEngine : public InputListener, SwapChainListener {
 private:
     /* Engine settings*/
     Settings settings{};
@@ -42,7 +42,7 @@ private:
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     VulkanDevice* vulkanDevice;
-    VulkanSwapChain* swapChain;
+    SwapChain* swapChain;
     ShaderGroup* shaderGroup;
     GraphicsPipelineLayout* pipelineLayout;
     RenderPass* renderPass;

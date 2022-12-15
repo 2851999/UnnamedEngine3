@@ -7,7 +7,7 @@
 #include "../Settings.h"
 #include "VulkanExtensions.h"
 #include "VulkanFeatures.h"
-#include "VulkanSwapChain.h"
+#include "SwapChain.h"
 
 /*****************************************************************************
  * VulkanDevice class - Handles physical and logical devices and helps during
@@ -56,7 +56,7 @@ private:
     VulkanFeatures* features;
 
     /* Swap chain support of this device */
-    VulkanSwapChain::Support swapChainSupport;
+    SwapChain::Support swapChainSupport;
 
     /* Queue families used by this device */
     QueueFamilyIndices queueFamiliyIndices;
@@ -100,7 +100,7 @@ public:
         QueueFamilyIndices queueFamilyIndices;
 
         /* Swap chain support of the device */
-        VulkanSwapChain::Support swapChainSupport;
+        SwapChain::Support swapChainSupport;
     };
 
     /* Constructor and destructor (validationLayers may be nullptr) */
@@ -184,11 +184,11 @@ public:
 
     /* Re-queries swap chain support and updates the support info */
     inline void requerySwapChainSupport(VkSurfaceKHR windowSurface) {
-        this->swapChainSupport = VulkanSwapChain::querySupport(physicalDevice, windowSurface);
+        this->swapChainSupport = SwapChain::querySupport(physicalDevice, windowSurface);
     }
 
     /* Returns the swap chain support */
-    inline VulkanSwapChain::Support& getSwapChainSupport() { return swapChainSupport; }
+    inline SwapChain::Support& getSwapChainSupport() { return swapChainSupport; }
 
     /* Returns the Vulkan device handles */
     inline VkPhysicalDevice& getVkPhysical() { return physicalDevice; }
