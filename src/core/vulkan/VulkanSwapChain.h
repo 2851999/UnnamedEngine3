@@ -37,6 +37,13 @@ private:
     /* Image views for the images in the swap chain */
     std::vector<VkImageView> imageViews;
 
+    /* Creates this swap chain - the settings will be modified to reflect
+       the actual VSync/video resolution & aspect radio chosen */
+    void create(Settings& settings);
+
+    /* Destroys resources ready for swap chain recreation */
+    void destroy();
+
     /* Helper function - returns the corresponding present mode for a given
        VSync setting */
     static inline VkPresentModeKHR vSyncToPresentMode(int vSync) {
@@ -114,6 +121,12 @@ public:
        the actual VSync/video resolution & aspect radio chosen */
     VulkanSwapChain(VulkanDevice* device, Settings& settings);
     virtual ~VulkanSwapChain();
+
+    /* Recreates this swap chain (for when it becomes out of date) */
+    inline void recreate(Settings& settings) {
+        destroy();
+        create(settings);
+    }
 
     /* Creates and returns framebuffers for rendering to this swap chain using
        a given render pass*/

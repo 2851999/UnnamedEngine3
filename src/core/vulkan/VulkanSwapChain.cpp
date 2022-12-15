@@ -12,6 +12,14 @@
  *****************************************************************************/
 
 VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : device(device) {
+    create(settings);
+}
+
+VulkanSwapChain::~VulkanSwapChain() {
+    destroy();
+}
+
+void VulkanSwapChain::create(Settings& settings) {
     // Obtain the device's swap chain support
     VulkanSwapChain::Support& swapChainSupport = device->getSwapChainSupport();
 
@@ -89,10 +97,11 @@ VulkanSwapChain::VulkanSwapChain(VulkanDevice* device, Settings& settings) : dev
         imageViews[i] = device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1);
 }
 
-VulkanSwapChain::~VulkanSwapChain() {
+void VulkanSwapChain::destroy() {
     // Destroy image views
     for (const auto& imageView : imageViews)
         device->destroyImageView(imageView);
+    // Destroy instance
     if (instance)
         vkDestroySwapchainKHR(device->getVkLogical(), instance, nullptr);
 }

@@ -45,19 +45,19 @@ void BaseEngine::create() {
         inputManager->addListener(this);
 
         // Pick a physical device
-        VulkanDevice* vulkanDevice = vulkanInstance->pickPhysicalDevice(settings, this->window);
+        vulkanDevice = vulkanInstance->pickPhysicalDevice(settings, this->window);
 
         // Assign the value of ray tracing to whether it is actually supported
         settings.video.rayTracing = vulkanDevice->isSupported(VulkanDeviceExtensions::RAY_TRACING);
 
         // Create swap chain
-        VulkanSwapChain* swapChain = new VulkanSwapChain(vulkanDevice, settings);
+        swapChain = new VulkanSwapChain(vulkanDevice, settings);
 
-        ShaderGroup* shaderGroup                        = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
-        RenderPass* renderPass                          = new RenderPass(vulkanDevice, swapChain);
-        GraphicsPipelineLayout* pipelineLayout          = new GraphicsPipelineLayout(vulkanDevice);
-        GraphicsPipeline* pipeline                      = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
-        std::vector<Framebuffer*> swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
+        shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+        pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
+        renderPass            = new RenderPass(vulkanDevice, swapChain);
+        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+        swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
 
@@ -126,80 +126,94 @@ void BaseEngine::create() {
             this->update();
 
             // Aquire the next swap chain image
-            vkAcquireNextImageKHR(vulkanDevice->getVkLogical(), swapChain->getVkInstance(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);  // Image index is next in chain
+            VkResult result = vkAcquireNextImageKHR(vulkanDevice->getVkLogical(), swapChain->getVkInstance(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);  // Image index is next in chain
 
-            // Wait for all fences (VK_TRUE)
-            vkWaitForFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
-            vkResetFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame]);  // Unlike semaphores have to reset after use
+            // Check for an out of date swapchain
+            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+                recreateSwapChain();
+            } else if (result != VK_SUCCESS) {
+                Logger::logAndThrowError("Failed to aquire swap chain image", "BaseEngine");
+            }
 
-            vkResetCommandBuffer(commandBuffers[currentFrame], 0);
+            // Should try again in next draw frame, not this one
+            if (result != VK_ERROR_OUT_OF_DATE_KHR && result != VK_SUBOPTIMAL_KHR) {
+                // Wait for all fences (VK_TRUE)
+                vkWaitForFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+                // Only reset if actually submitting work
+                vkResetFences(vulkanDevice->getVkLogical(), 1, &inFlightFences[currentFrame]);  // Unlike semaphores have to reset after use
 
-            // Begin recording to command buffer
-            VkCommandBufferBeginInfo beginInfo = {};
-            beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-            beginInfo.pInheritanceInfo         = nullptr;  // Optional
+                vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
-            if (vkBeginCommandBuffer(commandBuffers[currentFrame], &beginInfo) != VK_SUCCESS)
-                Logger::logAndThrowError("Failed to start recording to command buffer", "BaseEngine");
+                // Begin recording to command buffer
+                VkCommandBufferBeginInfo beginInfo = {};
+                beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+                beginInfo.pInheritanceInfo         = nullptr;  // Optional
 
-            renderPass->begin(commandBuffers[currentFrame], swapChainFramebuffers[imageIndex], swapChain->getExtent());
+                if (vkBeginCommandBuffer(commandBuffers[currentFrame], &beginInfo) != VK_SUCCESS)
+                    Logger::logAndThrowError("Failed to start recording to command buffer", "BaseEngine");
 
-            pipeline->bind(commandBuffers[currentFrame]);
+                renderPass->begin(commandBuffers[currentFrame], swapChainFramebuffers[imageIndex], swapChain->getExtent());
 
-            // Perform any rendering
-            this->render();
+                pipeline->bind(commandBuffers[currentFrame]);
 
-            vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
+                // Perform any rendering
+                this->render();
 
-            renderPass->end(commandBuffers[currentFrame]);
+                vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
 
-            // Stop recording to command buffer
-            if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS)
-                Logger::logAndThrowError("Failed to stop recording to command buffer", "BaseEngine");
+                renderPass->end(commandBuffers[currentFrame]);
 
-            VkSubmitInfo submitInfo = {};
-            submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                // Stop recording to command buffer
+                if (vkEndCommandBuffer(commandBuffers[currentFrame]) != VK_SUCCESS)
+                    Logger::logAndThrowError("Failed to stop recording to command buffer", "BaseEngine");
 
-            VkSemaphore waitSemaphores[]      = {imageAvailableSemaphores[currentFrame]};
-            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-            submitInfo.waitSemaphoreCount     = 1;
-            submitInfo.pWaitSemaphores        = waitSemaphores;
-            submitInfo.pWaitDstStageMask      = waitStages;
-            submitInfo.commandBufferCount     = 1;
-            submitInfo.pCommandBuffers        = &commandBuffers[currentFrame];
+                VkSubmitInfo submitInfo = {};
+                submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-            VkSemaphore signalSemaphores[]  = {renderFinishedSemaphores[currentFrame]};
-            submitInfo.signalSemaphoreCount = 1;
-            submitInfo.pSignalSemaphores    = signalSemaphores;
+                VkSemaphore waitSemaphores[]      = {imageAvailableSemaphores[currentFrame]};
+                VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+                submitInfo.waitSemaphoreCount     = 1;
+                submitInfo.pWaitSemaphores        = waitSemaphores;
+                submitInfo.pWaitDstStageMask      = waitStages;
+                submitInfo.commandBufferCount     = 1;
+                submitInfo.pCommandBuffers        = &commandBuffers[currentFrame];
 
-            // Fence added here to be signalled when command buffer finishes executing
-            VkResult result = vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]);
-            if (result != VK_SUCCESS)  // vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS
-                Logger::logAndThrowError("Failed to submit draw command buffer, result " + utils_string::str(result), "BaseEngine");
+                VkSemaphore signalSemaphores[]  = {renderFinishedSemaphores[currentFrame]};
+                submitInfo.signalSemaphoreCount = 1;
+                submitInfo.pSignalSemaphores    = signalSemaphores;
 
-            VkPresentInfoKHR presentInfo   = {};
-            presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            presentInfo.waitSemaphoreCount = 1;
-            presentInfo.pWaitSemaphores    = signalSemaphores;
+                // Fence added here to be signalled when command buffer finishes executing
+                VkResult result = vkQueueSubmit(vulkanDevice->getVkGraphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]);
+                if (result != VK_SUCCESS)  // vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS
+                    Logger::logAndThrowError("Failed to submit draw command buffer, result " + utils_string::str(result), "BaseEngine");
 
-            VkSwapchainKHR swapChains[] = {swapChain->getVkInstance()};
-            presentInfo.swapchainCount  = 1;
-            presentInfo.pSwapchains     = swapChains;
-            presentInfo.pImageIndices   = &imageIndex;
-            presentInfo.pResults        = nullptr;
+                VkPresentInfoKHR presentInfo   = {};
+                presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+                presentInfo.waitSemaphoreCount = 1;
+                presentInfo.pWaitSemaphores    = signalSemaphores;
 
-            result = vkQueuePresentKHR(vulkanDevice->getVkPresentQueue(), &presentInfo);
-            if (result != VK_SUCCESS)
-                Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
+                VkSwapchainKHR swapChains[] = {swapChain->getVkInstance()};
+                presentInfo.swapchainCount  = 1;
+                presentInfo.pSwapchains     = swapChains;
+                presentInfo.pImageIndices   = &imageIndex;
+                presentInfo.pResults        = nullptr;
 
-            // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
-            imageIndex = (imageIndex + 1) % swapChain->getImageCount();
+                result = vkQueuePresentKHR(vulkanDevice->getVkPresentQueue(), &presentInfo);
+                if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
+                    recreateSwapChain();
+                else if (result != VK_SUCCESS) {
+                    Logger::logAndThrowError("Failed to present image from queue " + utils_string::str(result), "BaseEngine");
+                }
 
-            currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+                // vkAcquireNextImageKHR semaphore signalled will be the one with this index (so must increase before it is called again)
+                imageIndex = (imageIndex + 1) % swapChain->getImageCount();
 
-            // End of frame
-            this->fpsLimiter.endFrame();
+                currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+                // End of frame
+                this->fpsLimiter.endFrame();
+            }
         }
 
         // Ensure everything has finished rendering
@@ -236,4 +250,28 @@ void BaseEngine::create() {
 
     // Terminate GLFW
     glfwTerminate();
+}
+
+void BaseEngine::recreateSwapChain() {
+    vulkanDevice->waitIdle();
+
+    delete pipeline;
+    delete renderPass;
+
+    for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
+        delete swapChainFramebuffers[i];
+
+    // TODO: Re-query swap chain formats
+    int width, height;
+    glfwGetFramebufferSize(window->getInstance(), &width, &height);
+    settings.window.width  = static_cast<unsigned int>(width);
+    settings.window.height = static_cast<unsigned int>(height);
+    std::cout << width << std::endl;
+    vulkanDevice->requerySwapChainSupport(window->getVkSurface());
+    swapChain->recreate(settings);
+
+    // Render pass only needs destroying due to format changing e.g. going from non-hdr to hdr monitor
+    renderPass            = new RenderPass(vulkanDevice, swapChain);
+    pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, swapChain->getExtent());
+    swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 }

@@ -88,6 +88,7 @@ void EngineTest::initialise() {
     getSettings().video.maxFPS           = 60;
     getSettings().debug.validationLayers = true;
     getSettings().video.rayTracing       = false;
+    getSettings().window.resizable       = true;
 
     // std::string glslangValidatorPath = "C:/VulkanSDK/1.3.204.1/Bin/glslangValidator.exe";
     // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "test", glslangValidatorPath);

@@ -182,6 +182,11 @@ public:
         vkDeviceWaitIdle(logicalDevice);
     }
 
+    /* Re-queries swap chain support and updates the support info */
+    inline void requerySwapChainSupport(VkSurfaceKHR windowSurface) {
+        this->swapChainSupport = VulkanSwapChain::querySupport(physicalDevice, windowSurface);
+    }
+
     /* Returns the swap chain support */
     inline VulkanSwapChain::Support& getSwapChainSupport() { return swapChainSupport; }
 

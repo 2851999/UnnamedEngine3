@@ -6,6 +6,11 @@
 #include "input/Input.h"
 #include "vulkan/VulkanInstance.h"
 
+// TODO: Remove these
+class ShaderGroup;
+class GraphicsPipeline;
+class GraphicsPipelineLayout;
+
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
@@ -27,6 +32,15 @@ private:
 
     /* Vulkan instance */
     VulkanInstance* vulkanInstance = nullptr;
+
+    /* TODO: Remove*/
+    VulkanDevice* vulkanDevice;
+    VulkanSwapChain* swapChain;
+    ShaderGroup* shaderGroup;
+    GraphicsPipelineLayout* pipelineLayout;
+    RenderPass* renderPass;
+    GraphicsPipeline* pipeline;
+    std::vector<Framebuffer*> swapChainFramebuffers;
 
 public:
     /* Constructor and destructors */
@@ -51,6 +65,9 @@ public:
 
     /* Called to destroy any created resources just before the engine stops */
     virtual void destroy() {}
+
+    /* TODO: Move??? */
+    void recreateSwapChain();
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }
