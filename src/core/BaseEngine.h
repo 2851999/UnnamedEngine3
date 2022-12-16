@@ -11,6 +11,7 @@
 class ShaderGroup;
 class GraphicsPipeline;
 class GraphicsPipelineLayout;
+class VulkanBuffer;
 
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
@@ -48,6 +49,7 @@ private:
     RenderPass* renderPass;
     GraphicsPipeline* pipeline;
     std::vector<Framebuffer*> swapChainFramebuffers;
+    VulkanBuffer* vertexBuffer;
 
 public:
     /* Constructor and destructors */

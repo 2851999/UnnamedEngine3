@@ -163,6 +163,23 @@ VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevic
     return queueFamiliyIndices;
 }
 
+uint32_t VulkanDevice::findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags) {
+    // Query available types of memory
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+    // TODO: Check heap it comes from
+
+    // Find a suitable memory type
+    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
+        if (typeBits & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)
+            return i;
+    }
+
+    Logger::logAndThrowError("Failed to find a suitable memory type", "VulkanDevice");
+    return 0;  // Stop compiler warnings
+}
+
 bool VulkanDevice::isSupported(std::string key) {
     // Look for the name in the extension and features
     bool supportedInExtensions = supportedExtensions.get(key);

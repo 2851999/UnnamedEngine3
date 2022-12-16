@@ -5,9 +5,9 @@
 
 #include "../../utils/Logging.h"
 #include "../Settings.h"
+#include "SwapChain.h"
 #include "VulkanExtensions.h"
 #include "VulkanFeatures.h"
-#include "SwapChain.h"
 
 /*****************************************************************************
  * VulkanDevice class - Handles physical and logical devices and helps during
@@ -64,6 +64,9 @@ private:
     /* Obtained queues (if assigned) */
     VkQueue graphicsQueue = VK_NULL_HANDLE;
     VkQueue presentQueue  = VK_NULL_HANDLE;
+
+    /* Looks for a specific memory type and returns its index */
+    uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags);
 
     /* Returns the queue family indices for a particular physical device - if
        window surface given is not VK_NULL_HANDLE will also look for a present
@@ -151,17 +154,33 @@ public:
 
     inline VkCommandPool createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
         // Create info
-        VkCommandPoolCreateInfo poolCreateInfo{};
-        poolCreateInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolCreateInfo.queueFamilyIndex = queueFamilyIndex;
-        poolCreateInfo.flags            = flags;
+        VkCommandPoolCreateInfo createInfo{};
+        createInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        createInfo.queueFamilyIndex = queueFamilyIndex;
+        createInfo.flags            = flags;
 
         // Attempt creation
         VkCommandPool commandPool;
-        if (vkCreateCommandPool(logicalDevice, &poolCreateInfo, nullptr, &commandPool) != VK_SUCCESS)
+        if (vkCreateCommandPool(logicalDevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create command pool", "VulkanDevice");
 
         return commandPool;
+    }
+
+    inline VkBuffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode) {
+        // Create info
+        VkBufferCreateInfo createInfo{};
+        createInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        createInfo.size        = size;
+        createInfo.usage       = usage;
+        createInfo.sharingMode = sharingMode;
+
+        // Attempt creation
+        VkBuffer buffer;
+        if (vkCreateBuffer(logicalDevice, &createInfo, nullptr, &buffer) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create buffer", "VulkanDevice");
+
+        return buffer;
     }
 
     /* Various methods to destroy resources using this device */
@@ -175,6 +194,40 @@ public:
 
     inline void destroyCommandPool(VkCommandPool commandPool) {
         vkDestroyCommandPool(logicalDevice, commandPool, nullptr);
+    }
+
+    inline void destroyBuffer(VkBuffer buffer) {
+        vkDestroyBuffer(logicalDevice, buffer, nullptr);
+    }
+
+    /* Allocates some device memory for a buffer - also binds its use to the
+       given buffer */
+    inline VkDeviceMemory allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) {
+        // Obtain the buffer's memory requirements
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
+
+        // Memory allocation info
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize  = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
+
+        // Attempt allocation
+        VkDeviceMemory memory;
+        if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
+
+        // Associate memory with the buffer
+        vkBindBufferMemory(logicalDevice, buffer, memory, 0);
+
+        // Return the memory
+        return memory;
+    }
+
+    /* Frees some allocated memory */
+    inline void freeMemory(VkDeviceMemory memory) {
+        vkFreeMemory(logicalDevice, memory, nullptr);
     }
 
     /* Waits until this device finishes whatever it's doing */

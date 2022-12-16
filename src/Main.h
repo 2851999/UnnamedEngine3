@@ -4,9 +4,9 @@
 #include "core/BaseEngine.h"
 #include "core/maths/Matrix.h"
 #include "core/maths/Quaternion.h"
+#include "core/render/Shader.h"
 #include "utils/Logging.h"
 #include "utils/TimeUtils.h"
-#include "core/render/Shader.h"
 
 class EngineTest : public BaseEngine {
 public:
@@ -91,7 +91,8 @@ void EngineTest::initialise() {
     getSettings().window.resizable       = true;
 
     // std::string glslangValidatorPath = "C:/VulkanSDK/1.3.204.1/Bin/glslangValidator.exe";
-    // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "test", glslangValidatorPath);
+    // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "triangle", glslangValidatorPath);
+    // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "simple", glslangValidatorPath);
 }
 
 void EngineTest::created() {

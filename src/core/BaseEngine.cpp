@@ -6,6 +6,7 @@
 #include "render/GraphicsPipeline.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
+#include "vulkan/VulkanBuffer.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -56,10 +57,39 @@ void BaseEngine::create() {
         // Listen for recreation events
         swapChain->addListener(this);
 
-        shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/test");
+        // clang-format off
+        std::vector<float> vertexData = {
+             0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
+             0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
+            -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
+        };
+        // clang-format on
+
+        vertexBuffer = new VulkanBuffer(vulkanDevice, sizeof(float) * vertexData.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE);
+        vertexBuffer->copy(vertexData.data(), sizeof(float) * vertexData.size());
+
+        // Vertex input binding description
+        // TODO: Move to a VBO class
+        VkVertexInputBindingDescription vertexInputBindingDescription{};
+        vertexInputBindingDescription.binding   = 0;
+        vertexInputBindingDescription.stride    = 5 * sizeof(float);
+        vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+        attributeDescriptions[0].binding  = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset   = 0;
+
+        attributeDescriptions[1].binding  = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset   = sizeof(float) * 2;
+
+        shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/simple");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
         renderPass            = new RenderPass(vulkanDevice, swapChain);
-        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), swapChain);
+        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), vertexInputBindingDescription, attributeDescriptions, swapChain);
         swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
@@ -151,6 +181,7 @@ void BaseEngine::create() {
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             delete swapChainFramebuffers[i];
+        delete vertexBuffer;
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
@@ -195,6 +226,10 @@ void BaseEngine::drawFrame() {
 
     // Perform any rendering
     this->render();
+
+    VkBuffer vertexBuffers[] = {vertexBuffer->getVkInstance()};
+    VkDeviceSize offsets[]   = {0};
+    vkCmdBindVertexBuffers(commandBuffers[currentFrame], 0, 1, vertexBuffers, offsets);
 
     vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
 

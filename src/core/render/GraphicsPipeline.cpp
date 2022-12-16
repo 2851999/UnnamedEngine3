@@ -26,7 +26,7 @@ GraphicsPipelineLayout::~GraphicsPipelineLayout() {
  * GraphicsPipeline class
  *****************************************************************************/
 
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup), width(width), height(height) {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VkVertexInputBindingDescription vertexInputBindingDescription, std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup), width(width), height(height), vertexInputBindingDescription(vertexInputBindingDescription), vertexInputAttributeDescriptions(vertexInputAttributeDescriptions) {
     create();
 }
 
@@ -34,10 +34,10 @@ void GraphicsPipeline::create() {
     // Vertex input state create info
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount   = 0;
-    vertexInputInfo.pVertexAttributeDescriptions    = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions    = nullptr;
+    vertexInputInfo.vertexBindingDescriptionCount   = 1;
+    vertexInputInfo.pVertexBindingDescriptions      = &vertexInputBindingDescription;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributeDescriptions.size());
+    vertexInputInfo.pVertexAttributeDescriptions    = vertexInputAttributeDescriptions.data();
 
     // Input assembly state create info
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};

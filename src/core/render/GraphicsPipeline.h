@@ -37,9 +37,12 @@ private:
     GraphicsPipelineLayout* layout;
     RenderPass* renderPass;
     ShaderGroup* shaderGroup;
+    VkVertexInputBindingDescription vertexInputBindingDescription;
+    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
 
     /* Function to create the pipeline */
-    void create();
+    void
+    create();
 
     /* Function to destroy this pipeline */
     void destroy();
@@ -47,7 +50,7 @@ private:
 public:
     /* Constructor and destructor - swapChain can be nullptr if autoscaling
        with swapchain size is not needed  */
-    GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, SwapChain* swapChain);
+    GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VkVertexInputBindingDescription vertexInputBindingDescription, std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions, SwapChain* swapChain);
     virtual ~GraphicsPipeline() { destroy(); }
 
     /* Binds this pipeline given the command buffer to record the command to */

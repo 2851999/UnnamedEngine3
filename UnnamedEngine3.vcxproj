@@ -30,10 +30,12 @@
     <ClInclude Include="src\core\render\RenderPass.h" />
     <ClInclude Include="src\core\render\Shader.h" />
     <ClInclude Include="src\core\Settings.h" />
+    <ClInclude Include="src\core\vulkan\VulkanBuffer.h" />
     <ClInclude Include="src\core\vulkan\VulkanDevice.h" />
     <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
     <ClInclude Include="src\core\vulkan\VulkanFeatures.h" />
     <ClInclude Include="src\core\vulkan\VulkanInstance.h" />
+    <ClInclude Include="src\core\vulkan\VulkanResizableResource.h" />
     <ClInclude Include="src\core\vulkan\VulkanResource.h" />
     <ClInclude Include="src\core\vulkan\SwapChain.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
@@ -55,6 +57,7 @@
     <ClCompile Include="src\core\render\RenderPass.cpp" />
     <ClCompile Include="src\core\render\Shader.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />
+    <ClCompile Include="src\core\vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanDevice.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanExtensions.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanFeatures.cpp" />
