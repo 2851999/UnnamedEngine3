@@ -27,8 +27,10 @@
     <ClInclude Include="src\core\maths\Vector.h" />
     <ClInclude Include="src\core\render\Framebuffer.h" />
     <ClInclude Include="src\core\render\GraphicsPipeline.h" />
+    <ClInclude Include="src\core\render\IndexBuffer.h" />
     <ClInclude Include="src\core\render\RenderPass.h" />
     <ClInclude Include="src\core\render\Shader.h" />
+    <ClInclude Include="src\core\render\VertexBuffer.h" />
     <ClInclude Include="src\core\Settings.h" />
     <ClInclude Include="src\core\vulkan\VulkanBuffer.h" />
     <ClInclude Include="src\core\vulkan\VulkanDevice.h" />

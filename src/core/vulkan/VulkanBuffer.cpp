@@ -4,10 +4,10 @@
  * VulkanBuffer class
  *****************************************************************************/
 
-VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal) : VulkanResource(device), size(size) {
+VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal) : VulkanResource(device), size(size) {
     // Create the buffer
     // TODO: Try and get rid of need for VK_BUFFER_USAGE_TRANSFER_DST_BIT -
-    //       trouble is cant be sure of supported memoryTypeBits untill
+    //       trouble is cant be sure of supported memoryTypeBits until
     //       obtaining memory requirements for the buffer
     device->createBuffer(size, deviceLocal ? usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT : usage, sharingMode, &instance);
 
@@ -27,6 +27,10 @@ VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsag
     // Check if staging needed (only for when want device local, but not
     // host visible and coherent)
     this->stagingNeeded = deviceLocal && chosenFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    // Copy data if given
+    if (data)
+        copy(data, size);
 }
 
 VulkanBuffer::~VulkanBuffer() {

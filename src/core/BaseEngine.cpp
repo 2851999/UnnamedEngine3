@@ -6,7 +6,8 @@
 #include "render/GraphicsPipeline.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
-#include "vulkan/VulkanBuffer.h"
+#include "render/IndexBuffer.h"
+#include "render/VertexBuffer.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -59,7 +60,7 @@ void BaseEngine::create() {
 
         // clang-format off
         std::vector<float> vertexData = {
-             -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+            -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
              0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
              0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
             -0.5f,  0.5f,   1.0f, 1.0f, 1.0f
@@ -70,11 +71,8 @@ void BaseEngine::create() {
         };
         // clang-format on
 
-        vertexBuffer = new VulkanBuffer(vulkanDevice, sizeof(float) * vertexData.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, true);
-        vertexBuffer->copy(vertexData.data(), sizeof(float) * vertexData.size());
-
-        indexBuffer = new VulkanBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, true);
-        indexBuffer->copy(indexData.data(), sizeof(uint16_t) * indexData.size());
+        vertexBuffer = new VertexBuffer(vulkanDevice, sizeof(float) * vertexData.size(), vertexData.data(), true);
+        indexBuffer  = new IndexBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), indexData.data(), true);
 
         // Vertex input binding description
         // TODO: Move to a VBO class

@@ -25,8 +25,8 @@ private:
     void copy(const void* data, VkDeviceSize size, VkDeviceMemory deviceMemory);
 
 public:
-    /* Constructor and destructor */
-    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal);
+    /* Constructor and destructor (data can be nullptr)*/
+    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal);
     virtual ~VulkanBuffer();
 
     /* Copies data into the buffer */
