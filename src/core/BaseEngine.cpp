@@ -95,10 +95,11 @@ void BaseEngine::create() {
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
 
         // Create a command pool
-        VkCommandPool commandPool = vulkanDevice->createCommandPool(
+        VkCommandPool commandPool;
+        vulkanDevice->createCommandPool(
             queueFamilyIndices.graphicsFamily.value(),
-            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
-        );
+            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
+            &commandPool);
 
         commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 

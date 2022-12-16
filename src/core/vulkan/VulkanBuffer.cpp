@@ -6,10 +6,10 @@
 
 VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode) : VulkanResource(device), size(size) {
     // Create the buffer
-    instance = device->createBuffer(size, usage, sharingMode);
+    device->createBuffer(size, usage, sharingMode, &instance);
 
     // Allocate memory
-    memory = device->allocateBufferMemory(instance, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    device->allocateBufferMemory(instance, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memory);
 }
 
 VulkanBuffer::~VulkanBuffer() {
@@ -26,6 +26,7 @@ void VulkanBuffer::copy(const void* data, VkDeviceSize size) {
     // VK_MEMORY_PROPERTY_HOST_COHERENT_BIT to ensure it will finish copying
     // before vkQueueSubmit is called later (otherwise need
     // vkFlushMappedMemoryRanges/vkInvalidateMappedMemoryRanges)
+    // TODO: Look at these and other types of memory flags
     void* mappedMemory;
     vkMapMemory(device->getVkLogical(), memory, 0, size, 0, &mappedMemory);
     memcpy(mappedMemory, data, static_cast<size_t>(size));

@@ -118,7 +118,7 @@ public:
     std::string listLimits();
 
     /* Various methods to create resources using this device */
-    inline VkImageView createImageView(VkImage image, VkImageViewType viewType, VkFormat format, VkImageAspectFlags aspectMask, uint32_t mipLevels, uint32_t baseMipLevel, uint32_t layerCount) {
+    inline void createImageView(VkImage image, VkImageViewType viewType, VkFormat format, VkImageAspectFlags aspectMask, uint32_t mipLevels, uint32_t baseMipLevel, uint32_t layerCount, VkImageView* pImageView) {
         // Create info
         VkImageViewCreateInfo createInfo         = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
         createInfo.image                         = image;
@@ -130,14 +130,11 @@ public:
         createInfo.subresourceRange.layerCount   = layerCount;
 
         // Attempt creation
-        VkImageView imageView;
-        if (vkCreateImageView(logicalDevice, &createInfo, nullptr, &imageView) != VK_SUCCESS)
+        if (vkCreateImageView(logicalDevice, &createInfo, nullptr, pImageView) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create image view", "VulkanDevice");
-
-        return imageView;
     }
 
-    inline VkShaderModule createShaderModule(const std::vector<char>& code) {
+    inline void createShaderModule(const std::vector<char>& code, VkShaderModule* pShaderModule) {
         // Create info
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -145,14 +142,11 @@ public:
         createInfo.pCode    = reinterpret_cast<const uint32_t*>(code.data());
 
         // Attempt creation
-        VkShaderModule shaderModule;
-        if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+        if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, pShaderModule) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create shader module", "VulkanDevice");
-
-        return shaderModule;
     }
 
-    inline VkCommandPool createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags) {
+    inline void createCommandPool(uint32_t queueFamilyIndex, VkCommandPoolCreateFlags flags, VkCommandPool* pCommandPool) {
         // Create info
         VkCommandPoolCreateInfo createInfo{};
         createInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -160,14 +154,11 @@ public:
         createInfo.flags            = flags;
 
         // Attempt creation
-        VkCommandPool commandPool;
-        if (vkCreateCommandPool(logicalDevice, &createInfo, nullptr, &commandPool) != VK_SUCCESS)
+        if (vkCreateCommandPool(logicalDevice, &createInfo, nullptr, pCommandPool) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create command pool", "VulkanDevice");
-
-        return commandPool;
     }
 
-    inline VkBuffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode) {
+    inline void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkBuffer* pBuffer) {
         // Create info
         VkBufferCreateInfo createInfo{};
         createInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -176,11 +167,8 @@ public:
         createInfo.sharingMode = sharingMode;
 
         // Attempt creation
-        VkBuffer buffer;
-        if (vkCreateBuffer(logicalDevice, &createInfo, nullptr, &buffer) != VK_SUCCESS)
+        if (vkCreateBuffer(logicalDevice, &createInfo, nullptr, pBuffer) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to create buffer", "VulkanDevice");
-
-        return buffer;
     }
 
     /* Various methods to destroy resources using this device */
@@ -202,7 +190,7 @@ public:
 
     /* Allocates some device memory for a buffer - also binds its use to the
        given buffer */
-    inline VkDeviceMemory allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags) {
+    inline void allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags, VkDeviceMemory& memory) {
         // Obtain the buffer's memory requirements
         VkMemoryRequirements memoryRequirements;
         vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
@@ -214,15 +202,11 @@ public:
         memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
 
         // Attempt allocation
-        VkDeviceMemory memory;
         if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
             Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
 
         // Associate memory with the buffer
         vkBindBufferMemory(logicalDevice, buffer, memory, 0);
-
-        // Return the memory
-        return memory;
     }
 
     /* Frees some allocated memory */

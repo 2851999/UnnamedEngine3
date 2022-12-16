@@ -101,7 +101,7 @@ void SwapChain::create() {
 
     // Create image views
     for (unsigned int i = 0; i < imageCount; ++i)
-        imageViews[i] = device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1);
+        device->createImageView(images[i], VK_IMAGE_VIEW_TYPE_2D, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, 0, 1, &imageViews[i]);
 }
 
 bool SwapChain::acquireNextImage(VkSemaphore semaphore, VkFence fence) {

@@ -31,7 +31,8 @@ Shader* Shader::load(VulkanDevice* device, const std::string& path, VkShaderStag
     std::vector<char> buffer = utils_file::readBinChar(path);
 
     // Create the shader module
-    VkShaderModule shaderModule = device->createShaderModule(buffer);
+    VkShaderModule shaderModule;
+    device->createShaderModule(buffer, &shaderModule);
 
     // Return the shader
     return new Shader(device, shaderModule, stage, entrypoint);
@@ -56,7 +57,7 @@ void Shader::compile(const std::string& inputPath, const std::string& outputPath
     // Split by extension
     std::vector<std::string> split = utils_string::splitLast(filePath, ".");
     std::string extension          = split[1];
-    
+
     if (SHADER_EXTENSIONS.count(extension) > 0)
         std::system((glslangValidatorPath + " --target-env vulkan1.2 -V " + inputPath + filePath + " -o " + outputPath + split[0] + SHADER_EXTENSIONS.at(split[1])).c_str());
     else
