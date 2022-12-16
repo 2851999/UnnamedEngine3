@@ -65,6 +65,9 @@ private:
     VkQueue graphicsQueue = VK_NULL_HANDLE;
     VkQueue presentQueue  = VK_NULL_HANDLE;
 
+    /* Graphics command pool */
+    VkCommandPool graphicsCommandPool = VK_NULL_HANDLE;
+
     /* Looks for a specific memory type and returns its index */
     uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags);
 
@@ -158,6 +161,17 @@ public:
             Logger::logAndThrowError("Failed to create command pool", "VulkanDevice");
     }
 
+    inline void createGraphicsCommandBuffers(VkCommandBufferLevel level, uint32_t commandBufferCount, VkCommandBuffer* pCommandBuffers) {
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool                 = graphicsCommandPool;
+        allocInfo.level                       = level;
+        allocInfo.commandBufferCount          = commandBufferCount;
+
+        if (vkAllocateCommandBuffers(logicalDevice, &allocInfo, pCommandBuffers) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to allocate command buffers", "VulkanDevice");
+    }
+
     inline void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, VkBuffer* pBuffer) {
         // Create info
         VkBufferCreateInfo createInfo{};
@@ -227,9 +241,10 @@ public:
     /* Returns the swap chain support */
     inline SwapChain::Support& getSwapChainSupport() { return swapChainSupport; }
 
-    /* Returns the Vulkan device handles */
+    /* Returns the Vulkan handles */
     inline VkPhysicalDevice& getVkPhysical() { return physicalDevice; }
     inline VkDevice& getVkLogical() { return logicalDevice; }
+    inline VkCommandPool& getVkGraphicsCommandPool() { return graphicsCommandPool; }
 
     /* Returns the queue indices/queues */
     inline QueueFamilyIndices& getQueueFamilyIndices() { return queueFamiliyIndices; }

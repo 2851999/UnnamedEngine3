@@ -94,23 +94,9 @@ void BaseEngine::create() {
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();
 
-        // Create a command pool
-        VkCommandPool commandPool;
-        vulkanDevice->createCommandPool(
-            queueFamilyIndices.graphicsFamily.value(),
-            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
-            &commandPool);
-
+        // Create command buffers
         commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-        VkCommandBufferAllocateInfo allocInfo = {};
-        allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool                 = commandPool;
-        allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandBufferCount          = static_cast<uint32_t>(commandBuffers.size());
-
-        if (vkAllocateCommandBuffers(vulkanDevice->getVkLogical(), &allocInfo, commandBuffers.data()) != VK_SUCCESS)
-            Logger::logAndThrowError("Failed to allocate command buffer", "BaseEngine");
+        vulkanDevice->createGraphicsCommandBuffers(VK_COMMAND_BUFFER_LEVEL_PRIMARY, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
         currentFrame = 0;
 
@@ -176,8 +162,6 @@ void BaseEngine::create() {
             vkDestroySemaphore(vulkanDevice->getVkLogical(), renderFinishedSemaphores[i], nullptr);
             vkDestroyFence(vulkanDevice->getVkLogical(), inFlightFences[i], nullptr);
         }
-
-        vulkanDevice->destroyCommandPool(commandPool);
 
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)

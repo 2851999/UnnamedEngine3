@@ -62,9 +62,17 @@ VulkanDevice::VulkanDevice(VulkanDevice::PhysicalDeviceInfo& physicalDeviceInfo)
     vkGetDeviceQueue(logicalDevice, queueFamiliyIndices.graphicsFamily.value(), 0, &graphicsQueue);
     if (queueFamiliyIndices.presentFamily.has_value())
         vkGetDeviceQueue(logicalDevice, queueFamiliyIndices.presentFamily.value(), 0, &presentQueue);
+
+    // Create a command pool for the graphics queue family
+    createCommandPool(queueFamiliyIndices.graphicsFamily.value(),
+                      VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // Optional VK_COMMAND_POOL_CREATE_TRANSIENT_BIT - if buffers will be updated many times
+                      &graphicsCommandPool);
 }
 
 VulkanDevice::~VulkanDevice() {
+    // Destroy command pool
+    destroyCommandPool(graphicsCommandPool);
+
     // Device queues are cleaned up when the device is destroyed
     vkDestroyDevice(logicalDevice, nullptr);
 
