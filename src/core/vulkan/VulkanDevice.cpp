@@ -171,7 +171,7 @@ VulkanDevice::QueueFamilyIndices VulkanDevice::findQueueFamilies(VkPhysicalDevic
     return queueFamiliyIndices;
 }
 
-uint32_t VulkanDevice::findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags) {
+VulkanDevice::FoundMemoryType VulkanDevice::findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags) {
     // Query available types of memory
     VkPhysicalDeviceMemoryProperties memoryProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
@@ -181,11 +181,63 @@ uint32_t VulkanDevice::findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags p
     // Find a suitable memory type
     for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; ++i) {
         if (typeBits & (1 << i) && (memoryProperties.memoryTypes[i].propertyFlags & propertyFlags) == propertyFlags)
-            return i;
+            return {i, memoryProperties.memoryTypes[i].heapIndex};
     }
 
     Logger::logAndThrowError("Failed to find a suitable memory type", "VulkanDevice");
-    return 0;  // Stop compiler warnings
+    return {0, 0};  // Stop compiler warnings
+};
+
+VkCommandBuffer VulkanDevice::beginSingleTimeGraphicsCommands() {
+    // Allocate a buffer
+    VkCommandBuffer commandBuffer;
+    createGraphicsCommandBuffers(VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1, &commandBuffer);
+
+    // Start recording
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT not necessary here since only using once and want to wait for operations to finish
+
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to start recording to command buffer", "VulkanDevice");
+
+    return commandBuffer;
+}
+
+void VulkanDevice::endSingleTimeGraphicsCommands(VkCommandBuffer commandBuffer) {
+    // Stop recording
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to stop recording to command buffer", "VulkanDevice");
+
+    // Prepare to submit to queue
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &commandBuffer;
+
+    // Submit
+    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, nullptr) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to submit single time commands", "VulkanDevice");
+
+    // Wait
+    // TODO: Run multiple simultaneously?
+    vkQueueWaitIdle(graphicsQueue);
+
+    // Free the command buffer
+    vkFreeCommandBuffers(logicalDevice, graphicsCommandPool, 1, &commandBuffer);
+}
+
+void VulkanDevice::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+    // Copy the buffer using a new command buffer
+    VkCommandBuffer commandBuffer = beginSingleTimeGraphicsCommands();
+
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size      = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    endSingleTimeGraphicsCommands(commandBuffer);
 }
 
 bool VulkanDevice::isSupported(std::string key) {

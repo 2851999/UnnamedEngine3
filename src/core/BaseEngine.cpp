@@ -65,7 +65,7 @@ void BaseEngine::create() {
         };
         // clang-format on
 
-        vertexBuffer = new VulkanBuffer(vulkanDevice, sizeof(float) * vertexData.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE);
+        vertexBuffer = new VulkanBuffer(vulkanDevice, sizeof(float) * vertexData.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, true);
         vertexBuffer->copy(vertexData.data(), sizeof(float) * vertexData.size());
 
         // Vertex input binding description

@@ -18,9 +18,15 @@ private:
     /* Size of this buffer */
     VkDeviceSize size;
 
+    /* States whether we need staging for copying data */
+    bool stagingNeeded;
+
+    /* Copies data into some device memory */
+    void copy(const void* data, VkDeviceSize size, VkDeviceMemory deviceMemory);
+
 public:
     /* Constructor and destructor */
-    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode);
+    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal);
     virtual ~VulkanBuffer();
 
     /* Copies data into the buffer */

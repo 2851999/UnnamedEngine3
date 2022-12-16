@@ -68,8 +68,14 @@ private:
     /* Graphics command pool */
     VkCommandPool graphicsCommandPool = VK_NULL_HANDLE;
 
+    /* Structure for returning found memory index and its heap */
+    struct FoundMemoryType {
+        uint32_t index;
+        uint32_t heapIndex;
+    };
+
     /* Looks for a specific memory type and returns its index */
-    uint32_t findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags);
+    FoundMemoryType findMemoryType(uint32_t typeBits, VkMemoryPropertyFlags propertyFlags);
 
     /* Returns the queue family indices for a particular physical device - if
        window surface given is not VK_NULL_HANDLE will also look for a present
@@ -203,17 +209,35 @@ public:
     }
 
     /* Allocates some device memory for a buffer - also binds its use to the
-       given buffer */
-    inline void allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags, VkDeviceMemory& memory) {
+       given buffer - When the optionalPropertyFlags are not 0 the heap index
+       for the memory matching requiredPropertyFlags compared against that for
+       optionalPropertyFlags. If they are both the same then all supplied
+       flags will be used, otherwise just the required will be. This is
+       useful for resizable bar/smart access memory - returns the chosen flags */
+    inline VkMemoryPropertyFlags allocateBufferMemoryWithHostQuery(VkBuffer buffer, VkMemoryPropertyFlags requiredPropertyFlags, VkMemoryPropertyFlags optionalPropertyFlags, VkDeviceMemory& memory) {
         // Obtain the buffer's memory requirements
         VkMemoryRequirements memoryRequirements;
         vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
 
         // Memory allocation info
         VkMemoryAllocateInfo memoryAllocateInfo{};
-        memoryAllocateInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        memoryAllocateInfo.allocationSize  = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
+        memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+
+        VkMemoryPropertyFlags chosenFlags = requiredPropertyFlags;
+        FoundMemoryType chosenMemoryType  = findMemoryType(memoryRequirements.memoryTypeBits, requiredPropertyFlags);
+
+        if (optionalPropertyFlags) {
+            // Query the heap index for the full combined
+            FoundMemoryType optionalMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, requiredPropertyFlags | optionalPropertyFlags);
+
+            if (chosenMemoryType.heapIndex == optionalMemoryType.heapIndex) {
+                chosenFlags      = requiredPropertyFlags | optionalPropertyFlags;
+                chosenMemoryType = optionalMemoryType;
+            }
+        }
+
+        memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
 
         // Attempt allocation
         if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
@@ -221,6 +245,14 @@ public:
 
         // Associate memory with the buffer
         vkBindBufferMemory(logicalDevice, buffer, memory, 0);
+
+        return chosenFlags;
+    }
+
+    /* Allocates some device memory for a buffer - also binds its use to the
+       given buffer */
+    inline void allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags, VkDeviceMemory& memory) {
+        allocateBufferMemoryWithHostQuery(buffer, propertyFlags, 0, memory);
     }
 
     /* Frees some allocated memory */
@@ -232,6 +264,19 @@ public:
     inline void waitIdle() {
         vkDeviceWaitIdle(logicalDevice);
     }
+
+    /* Allocates and returns a command buffer for recording a set of commands
+       that will be submitted to the graphics queue immediately after
+       finishing via endSingleTimeGraphicsCommands */
+    VkCommandBuffer beginSingleTimeGraphicsCommands();
+
+    /* Stops recording a command buffer allocated using
+       beginSingleTimeGraphicsCommands and submits it to the graphics queue
+       before waiting for the queue to become idle */
+    void endSingleTimeGraphicsCommands(VkCommandBuffer commandBuffer);
+
+    /* Uses the graphics queue to copy one buffer into another */
+    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
     /* Re-queries swap chain support and updates the support info */
     inline void requerySwapChainSupport(VkSurfaceKHR windowSurface) {
