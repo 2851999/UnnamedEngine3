@@ -50,6 +50,7 @@ private:
     GraphicsPipeline* pipeline;
     std::vector<Framebuffer*> swapChainFramebuffers;
     VulkanBuffer* vertexBuffer;
+    VulkanBuffer* indexBuffer;
 
 public:
     /* Constructor and destructors */

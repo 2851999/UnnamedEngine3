@@ -59,14 +59,22 @@ void BaseEngine::create() {
 
         // clang-format off
         std::vector<float> vertexData = {
-             0.0f, -0.5f,   1.0f, 0.0f, 0.0f,
-             0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
-            -0.5f,  0.5f,   0.0f, 0.0f, 1.0f
+             -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+             0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
+             0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
+            -0.5f,  0.5f,   1.0f, 1.0f, 1.0f
+        };
+        // Possible types are VK_INDEX_TYPE_UINT16 or VK_INDEX_TYPE_UINT32
+        std::vector<uint16_t> indexData = {
+            0, 1, 2, 2, 3, 0
         };
         // clang-format on
 
         vertexBuffer = new VulkanBuffer(vulkanDevice, sizeof(float) * vertexData.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, true);
         vertexBuffer->copy(vertexData.data(), sizeof(float) * vertexData.size());
+
+        indexBuffer = new VulkanBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, true);
+        indexBuffer->copy(indexData.data(), sizeof(uint16_t) * indexData.size());
 
         // Vertex input binding description
         // TODO: Move to a VBO class
@@ -167,6 +175,7 @@ void BaseEngine::create() {
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             delete swapChainFramebuffers[i];
         delete vertexBuffer;
+        delete indexBuffer;
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
@@ -216,7 +225,10 @@ void BaseEngine::drawFrame() {
     VkDeviceSize offsets[]   = {0};
     vkCmdBindVertexBuffers(commandBuffers[currentFrame], 0, 1, vertexBuffers, offsets);
 
-    vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
+    vkCmdBindIndexBuffer(commandBuffers[currentFrame], indexBuffer->getVkInstance(), 0, VK_INDEX_TYPE_UINT16);
+
+    // vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffers[currentFrame], 6, 1, 0, 0, 0);  // 6 indices
 
     renderPass->end(commandBuffers[currentFrame]);
 
