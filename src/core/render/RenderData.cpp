@@ -1,17 +1,17 @@
-#include "Mesh.h"
+#include "RenderData.h"
 
 /*****************************************************************************
- * Mesh class
+ * RenderData class
  *****************************************************************************/
 
-Mesh::Mesh(std::vector<VertexBuffer*> vertexBuffers, IndexBuffer* indexBuffer, uint32_t count) : vertexBuffers(vertexBuffers), indexBuffer(indexBuffer), count(count) {
+RenderData::RenderData(std::vector<VertexBuffer*> vertexBuffers, IndexBuffer* indexBuffer, uint32_t count) : vertexBuffers(vertexBuffers), indexBuffer(indexBuffer), count(count) {
     vertexBufferInstances.resize(vertexBuffers.size());
     vertexBufferOffsets.resize(vertexBuffers.size());
     for (unsigned int i = 0; i < vertexBufferOffsets.size(); ++i)
         vertexBufferOffsets[i] = 0;
 }
 
-Mesh::~Mesh() {
+RenderData::~RenderData() {
     // Destroy all buffers
     for (VertexBuffer* vertexBuffer : vertexBuffers)
         delete vertexBuffer;
@@ -19,7 +19,7 @@ Mesh::~Mesh() {
         delete indexBuffer;
 }
 
-void Mesh::render(VkCommandBuffer commandBuffer) {
+void RenderData::render(VkCommandBuffer commandBuffer) {
     // Bind the vertex buffers
     // TODO: Use offsets for materials
     // TODO: Allow instances
@@ -28,16 +28,16 @@ void Mesh::render(VkCommandBuffer commandBuffer) {
     for (unsigned int i = 0; i < vertexBuffers.size(); ++i)
         vertexBufferInstances[i] = vertexBuffers[i]->getVkInstance();
 
-    vkCmdBindVertexBuffers(commandBuffer, 0, vertexBufferInstances.size(), vertexBufferInstances.data(), offsets);
+    vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBufferInstances.size()), vertexBufferInstances.data(), offsets);
 
     // Check if have indices
     if (indexBuffer) {
         // Bind index buffer and draw
         indexBuffer->bind(commandBuffer);
 
-        vkCmdDrawIndexed(commandBuffer, count, 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, count, instanceCount, 0, 0, 0);
     } else {
         // Draw
-        vkCmdDraw(commandBuffer, count, 1, 0, 0);
+        vkCmdDraw(commandBuffer, count, instanceCount, 0, 0);
     }
 }

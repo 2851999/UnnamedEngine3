@@ -4,7 +4,7 @@
 #include "../utils/TimeUtils.h"
 #include "render/Framebuffer.h"
 #include "render/GraphicsPipeline.h"
-#include "render/Mesh.h"
+#include "render/RenderData.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
 
@@ -70,7 +70,7 @@ void BaseEngine::create() {
         };
         // clang-format on
 
-        mesh = new Mesh(
+        renderData = new RenderData(
             {new VertexBuffer(vulkanDevice, sizeof(float) * vertexData.size(), vertexData.data(), true)},
             new IndexBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), indexData.data(), VK_INDEX_TYPE_UINT16, true),
             6);
@@ -173,7 +173,7 @@ void BaseEngine::create() {
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             delete swapChainFramebuffers[i];
-        delete mesh;
+        delete renderData;
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
@@ -219,7 +219,7 @@ void BaseEngine::drawFrame() {
     // Perform any rendering
     this->render();
 
-    mesh->render(commandBuffers[currentFrame]);
+    renderData->render(commandBuffers[currentFrame]);
 
     renderPass->end(commandBuffers[currentFrame]);
 

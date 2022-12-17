@@ -102,7 +102,7 @@
     <ClInclude Include="src\core\render\VertexBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\Mesh.h">
+    <ClInclude Include="src\core\render\RenderData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -176,7 +176,7 @@
     <ClCompile Include="src\core\vulkan\VulkanBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\render\Mesh.cpp">
+    <ClCompile Include="src\core\render\RenderData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
