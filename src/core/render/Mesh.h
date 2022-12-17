@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "../Sphere.h"
 #include "Colour.h"
 #include "GraphicsPipeline.h"
@@ -16,7 +18,6 @@ class ShaderInterface;
 // TODO: Avoid using push_back where possible - Custom engine format would
 //       is one way to do this while still allowing data to be kept
 //       separate/interleaved and keeping bounding sphere information
-// TODO: Allow other topologies not just VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
 // TODO: Allow 3 colour components instead of 4?
 
 class MeshData {
@@ -72,11 +73,27 @@ public:
         // SEPARATE_INDEX_OFFSETS    = 1 << 9,
     };
 
+    /* Info about data types that can be stored in a single buffer */
+    struct DataTypeInfo {
+        // Flag used to separate the data
+        SeparateFlags separateFlag;
+        // Size of this data in bytes
+        uint32_t size;
+        // Format this data takes according to Vulkan
+        VkFormat format;
+    };
+
     /* Numbers of dimensions */
     static const unsigned int DIMENSIONS_2D = 2;
     static const unsigned int DIMENSIONS_3D = 3;
 
 private:
+    /* Known datatypes and their info */
+    static std::map<int, DataTypeInfo> datatypeInfoMaps;
+
+    /* Returns info about a known datatype or errors if not found */
+    static DataTypeInfo getDataTypeInfo(unsigned int numDimensions, DataType dataType);
+
     /* Number of dimensions data will be stored for (effects vertex input
        bindings) */
     unsigned int numDimensions;
