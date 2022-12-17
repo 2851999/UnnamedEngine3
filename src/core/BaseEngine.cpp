@@ -4,10 +4,9 @@
 #include "../utils/TimeUtils.h"
 #include "render/Framebuffer.h"
 #include "render/GraphicsPipeline.h"
+#include "render/Mesh.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
-#include "render/IndexBuffer.h"
-#include "render/VertexBuffer.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -71,8 +70,10 @@ void BaseEngine::create() {
         };
         // clang-format on
 
-        vertexBuffer = new VertexBuffer(vulkanDevice, sizeof(float) * vertexData.size(), vertexData.data(), true);
-        indexBuffer  = new IndexBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), indexData.data(), true);
+        mesh = new Mesh(
+            {new VertexBuffer(vulkanDevice, sizeof(float) * vertexData.size(), vertexData.data(), true)},
+            new IndexBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), indexData.data(), VK_INDEX_TYPE_UINT16, true),
+            6);
 
         // Vertex input binding description
         // TODO: Move to a VBO class
@@ -172,8 +173,7 @@ void BaseEngine::create() {
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             delete swapChainFramebuffers[i];
-        delete vertexBuffer;
-        delete indexBuffer;
+        delete mesh;
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
@@ -219,14 +219,7 @@ void BaseEngine::drawFrame() {
     // Perform any rendering
     this->render();
 
-    VkBuffer vertexBuffers[] = {vertexBuffer->getVkInstance()};
-    VkDeviceSize offsets[]   = {0};
-    vkCmdBindVertexBuffers(commandBuffers[currentFrame], 0, 1, vertexBuffers, offsets);
-
-    vkCmdBindIndexBuffer(commandBuffers[currentFrame], indexBuffer->getVkInstance(), 0, VK_INDEX_TYPE_UINT16);
-
-    // vkCmdDraw(commandBuffers[currentFrame], 3, 1, 0, 0);
-    vkCmdDrawIndexed(commandBuffers[currentFrame], 6, 1, 0, 0, 0);  // 6 indices
+    mesh->render(commandBuffers[currentFrame]);
 
     renderPass->end(commandBuffers[currentFrame]);
 

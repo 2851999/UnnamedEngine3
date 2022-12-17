@@ -8,10 +8,11 @@
  *****************************************************************************/
 
 class VulkanBuffer : VulkanResource {
-private:
+protected:
     /* Vulkan buffer instance*/
     VkBuffer instance;
 
+private:
     /* Allocated device memory for the buffer */
     VkDeviceMemory memory;
 

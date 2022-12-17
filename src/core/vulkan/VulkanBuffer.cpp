@@ -76,8 +76,7 @@ void VulkanBuffer::copy(const void* data, VkDeviceSize size) {
         // Free staging resources
         device->destroyBuffer(stagingBuffer);
         device->freeMemory(stagingBufferMemory);
-    } else {
+    } else
         // Copy directly
         copy(data, size, memory);
-    }
 }
