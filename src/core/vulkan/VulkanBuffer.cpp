@@ -19,11 +19,7 @@ VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, 
     // VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     // In the case of resizable bar/smart memory access whole of device memory
     // can be all of the above, so no staging will be necessary
-    // TODO: Prefer this even when staging not requested
-
-    VkMemoryPropertyFlags requiredFlags = deviceLocal ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    VkMemoryPropertyFlags optionalFlags = deviceLocal ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT : 0;
-    VkMemoryPropertyFlags chosenFlags   = device->allocateBufferMemoryWithHostQuery(instance, requiredFlags, optionalFlags, memory);
+    VkMemoryPropertyFlags chosenFlags = device->allocateBufferMemoryResizableBar(instance, memory, deviceLocal);
 
     // Check if staging needed (only for when want device local, but not
     // host visible and coherent)

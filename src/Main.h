@@ -9,6 +9,9 @@
 #include "utils/TimeUtils.h"
 
 class EngineTest : public BaseEngine {
+private:
+    unsigned int testVar = 0;
+
 public:
     virtual void initialise() override;
     virtual void created() override;
@@ -85,7 +88,7 @@ void EngineTest::initialise() {
 
     std::cout << utils_string::toInt("10") << std::endl;
 
-    getSettings().video.maxFPS           = 60;
+    getSettings().video.maxFPS           = 0;
     getSettings().debug.validationLayers = true;
     getSettings().video.rayTracing       = false;
     getSettings().window.resizable       = true;
@@ -100,7 +103,11 @@ void EngineTest::created() {
 }
 
 void EngineTest::update() {
-    // std::cout << getFPS() << std::endl;
+    testVar++;
+    if (testVar > 1000) {
+        std::cout << getFPS() << std::endl;
+        testVar = 0;
+    }
 }
 
 void EngineTest::render() {

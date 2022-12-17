@@ -209,17 +209,89 @@ public:
     }
 
     /* Allocates some device memory for a buffer - also binds its use to the
-       given buffer - When the optionalPropertyFlags are not 0 the heap index
-       for the memory matching requiredPropertyFlags compared against that for
-       optionalPropertyFlags. If they are both the same then all supplied
-       flags will be used, otherwise just the required will be. This is
-       useful for resizable bar/smart access memory - returns the chosen flags */
-    VkMemoryPropertyFlags allocateBufferMemoryWithHostQuery(VkBuffer buffer, VkMemoryPropertyFlags requiredPropertyFlags, VkMemoryPropertyFlags optionalPropertyFlags, VkDeviceMemory& memory);
-
-    /* Allocates some device memory for a buffer - also binds its use to the
        given buffer */
     inline void allocateBufferMemory(VkBuffer buffer, VkMemoryPropertyFlags propertyFlags, VkDeviceMemory& memory) {
-        allocateBufferMemoryWithHostQuery(buffer, propertyFlags, 0, memory);
+        // Obtain the buffer's memory requirements
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
+
+        // Memory allocation info
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+
+        FoundMemoryType chosenMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, propertyFlags);
+
+        memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
+
+        // Attempt allocation
+        if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
+
+        // Associate memory with the buffer
+        vkBindBufferMemory(logicalDevice, buffer, memory, 0);
+    }
+
+    /* Allocates some device memory for a buffer - When deviceLocal is true
+       will return memory with the property flags
+       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT or VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+       if both are found in the same heap (indicating resizable bar/smart
+       access memory is supported)
+       When false it instead returns
+       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT or VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+       under the same conditions
+    */
+    inline VkMemoryPropertyFlags allocateBufferMemoryResizableBar(VkBuffer buffer, VkDeviceMemory& memory, bool deviceLocal) {
+        // TODO: Cleanup
+
+        // Obtain the buffer's memory requirements
+        VkMemoryRequirements memoryRequirements;
+        vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
+
+        // Memory allocation info
+        VkMemoryAllocateInfo memoryAllocateInfo{};
+        memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+
+        VkMemoryPropertyFlags requiredFlags;
+        VkMemoryPropertyFlags optionalFlags;
+        VkMemoryPropertyFlags queryFlags;
+        if (deviceLocal) {
+            requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        } else {
+            requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        }
+
+        VkMemoryPropertyFlags chosenFlags;
+        FoundMemoryType memoryType1 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        FoundMemoryType memoryType2 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        FoundMemoryType chosenMemoryType;
+
+        if (memoryType1.heapIndex == memoryType2.heapIndex) {
+            chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            chosenMemoryType = memoryType2;
+        } else {
+            if (deviceLocal) {
+                chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+                chosenMemoryType = memoryType1;
+            } else {
+                chosenFlags      = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+                chosenMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, chosenFlags);
+            }
+        }
+
+        memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
+
+        // Attempt allocation
+        if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
+
+        // Associate memory with the buffer
+        vkBindBufferMemory(logicalDevice, buffer, memory, 0);
+
+        return chosenFlags;
     }
 
     /* Frees some allocated memory */

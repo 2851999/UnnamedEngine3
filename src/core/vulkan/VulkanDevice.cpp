@@ -188,41 +188,6 @@ VulkanDevice::FoundMemoryType VulkanDevice::findMemoryType(uint32_t typeBits, Vk
     return {0, 0};  // Stop compiler warnings
 };
 
-VkMemoryPropertyFlags VulkanDevice::allocateBufferMemoryWithHostQuery(VkBuffer buffer, VkMemoryPropertyFlags requiredPropertyFlags, VkMemoryPropertyFlags optionalPropertyFlags, VkDeviceMemory& memory) {
-    // Obtain the buffer's memory requirements
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
-
-    // Memory allocation info
-    VkMemoryAllocateInfo memoryAllocateInfo{};
-    memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memoryAllocateInfo.allocationSize = memoryRequirements.size;
-
-    VkMemoryPropertyFlags chosenFlags = requiredPropertyFlags;
-    FoundMemoryType chosenMemoryType  = findMemoryType(memoryRequirements.memoryTypeBits, requiredPropertyFlags);
-
-    if (optionalPropertyFlags) {
-        // Query the heap index for the full combined
-        FoundMemoryType optionalMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, requiredPropertyFlags | optionalPropertyFlags);
-
-        if (chosenMemoryType.heapIndex == optionalMemoryType.heapIndex) {
-            chosenFlags      = requiredPropertyFlags | optionalPropertyFlags;
-            chosenMemoryType = optionalMemoryType;
-        }
-    }
-
-    memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
-
-    // Attempt allocation
-    if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
-        Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
-
-    // Associate memory with the buffer
-    vkBindBufferMemory(logicalDevice, buffer, memory, 0);
-
-    return chosenFlags;
-}
-
 VkCommandBuffer VulkanDevice::beginSingleTimeGraphicsCommands() {
     // Allocate a buffer
     VkCommandBuffer commandBuffer;
