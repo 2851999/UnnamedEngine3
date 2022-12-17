@@ -191,6 +191,9 @@
     <ClCompile Include="src\core\render\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\render\ShaderInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\Downloads\CppDevelopment\vcpkg\installed\x64-windows\bin\glfw3.dll" />

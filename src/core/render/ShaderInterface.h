@@ -1,18 +1,24 @@
 #pragma once
 
+#include "Mesh.h"
+
 /*****************************************************************************
  * ShaderInterface class - Stores data about the interface to engine shaders
  *****************************************************************************/
 
 class ShaderInterface {
+private:
+    /* Mapping for attribute values from the engine to the shader */
+    std::map<int, uint32_t> attributeMappings;
+
 public:
-    /* The locations for attributes in the shaders */
-    static const unsigned int ATTRIBUTE_LOCATION_POSITION      = 0;
-    static const unsigned int ATTRIBUTE_LOCATION_COLOUR        = 1;  // Needs to be the same for now
-    static const unsigned int ATTRIBUTE_LOCATION_TEXTURE_COORD = 1;
-    static const unsigned int ATTRIBUTE_LOCATION_NORMAL        = 2;
-    static const unsigned int ATTRIBUTE_LOCATION_TANGENT       = 3;
-    static const unsigned int ATTRIBUTE_LOCATION_BITANGENT     = 4;
-    static const unsigned int ATTRIBUTE_LOCATION_BONE_INDICES  = 5;
-    static const unsigned int ATTRIBUTE_LOCATION_BONE_WEIGHTS  = 6;
+    /* Constructor and destructor */
+    ShaderInterface() {}
+    virtual ~ShaderInterface() {}
+
+    /* Method to add an attribute mapping to this interface */
+    inline void addAttributeLocation(MeshData::DataType dataType, uint32_t location) { attributeMappings.insert(std::pair<int, uint32_t>(dataType, location)); }
+
+    /* Returns a mapping (or errors if it has not been assigned) */
+    uint32_t getAttributeLocation(MeshData::DataType dataType);
 };

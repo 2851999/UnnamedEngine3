@@ -5,6 +5,9 @@
 #include "GraphicsPipeline.h"
 #include "VertexBuffer.h"
 
+// Forward declaration
+class ShaderInterface;
+
 /*****************************************************************************
  * MeshData class - Stores data required for constructing a mesh and helps
  *                  during construction
@@ -189,5 +192,5 @@ public:
 
     /* Static method to construct vertex input bindings and attributes given the
        required data and whether they should be separated from the others */
-    static GraphicsPipeline::VertexInputDescription computeVertexInputDescription(unsigned int numDimensions, std::vector<DataType> requiredData, SeparateFlags flags);
+    static GraphicsPipeline::VertexInputDescription computeVertexInputDescription(unsigned int numDimensions, std::vector<DataType> requiredData, SeparateFlags flags, ShaderInterface shaderInterface);
 };

@@ -125,7 +125,7 @@ void MeshData::addBitangent(Vector3f bitangent) {
 
 // TODO: Take in RenderShader or something here and use it for shader locations only - that way can avoid having issues with ordering when certain parameters
 //       are not assigned
-GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription(unsigned int numDimensions, std::vector<DataType> requiredData, SeparateFlags flags) {
+GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription(unsigned int numDimensions, std::vector<DataType> requiredData, SeparateFlags flags, ShaderInterface shaderInterface) {
     // The output data
     GraphicsPipeline::VertexInputDescription description;
     description.primitiveTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -138,42 +138,42 @@ GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription
     for (DataType current : requiredData) {
         if (current == POSITION) {
             if ((flags & SEPARATE_POSITIONS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_POSITION, currentBinding, numDimensions == 3 ? VK_FORMAT_R32G32B32_SFLOAT : VK_FORMAT_R32G32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, numDimensions == 3 ? VK_FORMAT_R32G32B32_SFLOAT : VK_FORMAT_R32G32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, numDimensions * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
                 otherData.push_back(current);
         } else if (current == COLOUR) {
             if ((flags & SEPARATE_COLOURS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_POSITION, currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 4 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
                 otherData.push_back(current);
         } else if (current == TEXTURE_COORD) {
             if ((flags & SEPARATE_TEXTURE_COORDS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_TEXTURE_COORD, currentBinding, VK_FORMAT_R32G32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 2 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
                 otherData.push_back(current);
         } else if (current == NORMAL) {
             if ((flags & SEPARATE_NORMALS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_NORMAL, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 3 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
                 otherData.push_back(current);
         } else if (current == TANGENT) {
             if ((flags & SEPARATE_TANGENTS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_TANGENT, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 3 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
                 otherData.push_back(current);
         } else if (current == BITANGENT) {
             if ((flags & SEPARATE_BITANGENTS)) {
-                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_BITANGENT, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
+                description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, 0));
                 description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 3 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
                 ++currentBinding;
             } else
@@ -190,27 +190,27 @@ GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription
         for (DataType current : otherData) {
             switch (current) {
                 case POSITION:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_POSITION, currentBinding, numDimensions == 3 ? VK_FORMAT_R32G32B32_SFLOAT : VK_FORMAT_R32G32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, numDimensions == 3 ? VK_FORMAT_R32G32B32_SFLOAT : VK_FORMAT_R32G32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * numDimensions;
                     break;
                 case COLOUR:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_COLOUR, currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * 4;
                     break;
                 case TEXTURE_COORD:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_TEXTURE_COORD, currentBinding, VK_FORMAT_R32G32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * 2;
                     break;
                 case NORMAL:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_NORMAL, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * 3;
                     break;
                 case TANGENT:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_TANGENT, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * 3;
                     break;
                 case BITANGENT:
-                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_BITANGENT, currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
+                    description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(current), currentBinding, VK_FORMAT_R32G32B32_SFLOAT, currentOffset));
                     currentOffset += sizeof(float) * 3;
                     break;
                 case BONE_INDEX:
@@ -226,10 +226,10 @@ GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription
 
     if (hasBones) {
         // Add bone info
-        description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_BONE_WEIGHTS, currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, 0));
+        description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(MeshData::BONE_WEIGHT), currentBinding, VK_FORMAT_R32G32B32A32_SFLOAT, 0));
         description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 4 * sizeof(float), VK_VERTEX_INPUT_RATE_VERTEX));
         ++currentBinding;
-        description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(ShaderInterface::ATTRIBUTE_LOCATION_BONE_INDICES, currentBinding, VK_FORMAT_R32G32B32A32_UINT, 0));
+        description.attributes.push_back(utils_vulkan::initVertexAttributeDescription(shaderInterface.getAttributeLocation(MeshData::BONE_INDEX), currentBinding, VK_FORMAT_R32G32B32A32_UINT, 0));
         description.bindings.push_back(utils_vulkan::initVertexInputBindings(currentBinding, 4 * sizeof(uint32_t), VK_VERTEX_INPUT_RATE_VERTEX));
     }
 

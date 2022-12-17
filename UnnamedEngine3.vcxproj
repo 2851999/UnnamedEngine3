@@ -64,6 +64,7 @@
     <ClCompile Include="src\core\render\RenderData.cpp" />
     <ClCompile Include="src\core\render\RenderPass.cpp" />
     <ClCompile Include="src\core\render\Shader.cpp" />
+    <ClCompile Include="src\core\render\ShaderInterface.cpp" />
     <ClCompile Include="src\core\Settings.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\core\vulkan\VulkanDevice.cpp" />
