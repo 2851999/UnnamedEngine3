@@ -4,6 +4,7 @@
 #include "../utils/TimeUtils.h"
 #include "render/Framebuffer.h"
 #include "render/GraphicsPipeline.h"
+#include "render/Mesh.h"
 #include "render/RenderData.h"
 #include "render/RenderPass.h"
 #include "render/Shader.h"
@@ -59,10 +60,10 @@ void BaseEngine::create() {
 
         // clang-format off
         std::vector<float> vertexData = {
-            -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
-             0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
-             0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
-            -0.5f,  0.5f,   1.0f, 1.0f, 1.0f
+            -0.5f, -0.5f,   1.0f, 0.0f, 0.0f, 1.0f,
+             0.5f, -0.5f,   0.0f, 1.0f, 0.0f, 1.0f,
+             0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 1.0f,
+            -0.5f,  0.5f,   1.0f, 1.0f, 1.0f, 1.0f
         };
         // Possible types are VK_INDEX_TYPE_UINT16 or VK_INDEX_TYPE_UINT32
         std::vector<uint16_t> indexData = {
@@ -77,26 +78,26 @@ void BaseEngine::create() {
 
         // Vertex input binding description
         // TODO: Move to a VBO class
-        VkVertexInputBindingDescription vertexInputBindingDescription{};
-        vertexInputBindingDescription.binding   = 0;
-        vertexInputBindingDescription.stride    = 5 * sizeof(float);
-        vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        // VkVertexInputBindingDescription vertexInputBindingDescription{};
+        // vertexInputBindingDescription.binding   = 0;
+        // vertexInputBindingDescription.stride    = 5 * sizeof(float);
+        // vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-        attributeDescriptions[0].binding  = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[0].offset   = 0;
+        // std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
+        // attributeDescriptions[0].binding  = 0;
+        // attributeDescriptions[0].location = 0;
+        // attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
+        // attributeDescriptions[0].offset   = 0;
 
-        attributeDescriptions[1].binding  = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset   = sizeof(float) * 2;
+        // attributeDescriptions[1].binding  = 0;
+        // attributeDescriptions[1].location = 1;
+        // attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
+        // attributeDescriptions[1].offset   = sizeof(float) * 2;
 
         shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/simple");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
         renderPass            = new RenderPass(vulkanDevice, swapChain);
-        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), vertexInputBindingDescription, attributeDescriptions, swapChain);
+        pipeline              = new GraphicsPipeline(pipelineLayout, renderPass, shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), MeshData::computeVertexInputDescription(2, {MeshData::POSITION, MeshData::COLOUR}, MeshData::SEPARATE_NONE), swapChain);
         swapChainFramebuffers = swapChain->createFramebuffers(renderPass);
 
         VulkanDevice::QueueFamilyIndices queueFamilyIndices = vulkanDevice->getQueueFamilyIndices();

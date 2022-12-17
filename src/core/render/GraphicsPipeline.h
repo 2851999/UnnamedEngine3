@@ -27,6 +27,16 @@ public:
  *****************************************************************************/
 
 class GraphicsPipeline : VulkanResizableResource {
+public:
+    /* Stores the vertex input binding and attribute descriptions required for a
+       graphics pipeline as well as the topology to render */
+    struct VertexInputDescription {
+        VkPrimitiveTopology primitiveTopology;
+
+        std::vector<VkVertexInputBindingDescription> bindings;
+        std::vector<VkVertexInputAttributeDescription> attributes;
+    };
+
 private:
     /* Pipeline instance */
     VkPipeline instance;
@@ -37,12 +47,10 @@ private:
     GraphicsPipelineLayout* layout;
     RenderPass* renderPass;
     ShaderGroup* shaderGroup;
-    VkVertexInputBindingDescription vertexInputBindingDescription;
-    std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
+    VertexInputDescription vertexInputDescription;
 
     /* Function to create the pipeline */
-    void
-    create();
+    void create();
 
     /* Function to destroy this pipeline */
     void destroy();
@@ -50,7 +58,7 @@ private:
 public:
     /* Constructor and destructor - swapChain can be nullptr if autoscaling
        with swapchain size is not needed  */
-    GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VkVertexInputBindingDescription vertexInputBindingDescription, std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions, SwapChain* swapChain);
+    GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VertexInputDescription vertexInputDescription, SwapChain* swapChain);
     virtual ~GraphicsPipeline() { destroy(); }
 
     /* Binds this pipeline given the command buffer to record the command to */

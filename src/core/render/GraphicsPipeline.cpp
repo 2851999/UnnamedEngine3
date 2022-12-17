@@ -26,7 +26,7 @@ GraphicsPipelineLayout::~GraphicsPipelineLayout() {
  * GraphicsPipeline class
  *****************************************************************************/
 
-GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VkVertexInputBindingDescription vertexInputBindingDescription, std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup), width(width), height(height), vertexInputBindingDescription(vertexInputBindingDescription), vertexInputAttributeDescriptions(vertexInputAttributeDescriptions) {
+GraphicsPipeline::GraphicsPipeline(GraphicsPipelineLayout* layout, RenderPass* renderPass, ShaderGroup* shaderGroup, uint32_t width, uint32_t height, VertexInputDescription vertexInputDescription, SwapChain* swapChain) : VulkanResizableResource(renderPass->getDevice(), swapChain), layout(layout), renderPass(renderPass), shaderGroup(shaderGroup), width(width), height(height), vertexInputDescription(vertexInputDescription) {
     create();
 }
 
@@ -34,15 +34,16 @@ void GraphicsPipeline::create() {
     // Vertex input state create info
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount   = 1;
-    vertexInputInfo.pVertexBindingDescriptions      = &vertexInputBindingDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributeDescriptions.size());
-    vertexInputInfo.pVertexAttributeDescriptions    = vertexInputAttributeDescriptions.data();
+    vertexInputInfo.vertexBindingDescriptionCount   = static_cast<uint32_t>(vertexInputDescription.bindings.size());
+    vertexInputInfo.pVertexBindingDescriptions      = vertexInputDescription.bindings.data();
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputDescription.attributes.size());
+    vertexInputInfo.pVertexAttributeDescriptions    = vertexInputDescription.attributes.data();
 
     // Input assembly state create info
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
-    inputAssemblyInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssemblyInfo.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyInfo.sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyInfo.topology = vertexInputDescription.primitiveTopology;
+    // TODO: Experiment with this - may be able to use triangle strips instead
     inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
     // Viewport
