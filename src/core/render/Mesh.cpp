@@ -53,6 +53,8 @@ void MeshData::addPosition(Vector2f position) {
         others.push_back(position.getX());
         others.push_back(position.getY());
     }
+
+    ++vertexCount;
 }
 
 void MeshData::addPosition(Vector3f position) {
@@ -76,6 +78,8 @@ void MeshData::addPosition(Vector3f position) {
         minZ = utils_maths::min(minZ, position.getZ());
         maxZ = utils_maths::max(maxZ, position.getZ());
     }
+
+    ++vertexCount;
 }
 
 void MeshData::addColour(Colour colour) {
@@ -199,4 +203,321 @@ GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription
     }
 
     return description;
+}
+
+/*****************************************************************************
+ * MeshRenderData class
+ *****************************************************************************/
+
+MeshRenderData::MeshRenderData(VulkanDevice* device, MeshData* data) {
+    // TODO: Don't hard code this
+    bool deviceLocal = true;
+
+    // Vertex buffers
+    std::vector<VertexBuffer*> vertexBuffers;
+
+    // Create the buffers as needed
+    if (data->hasPositions() && data->separatePositions()) {
+        vboPositions = new VertexBuffer(device, data->getPositions().size() * sizeof(data->getPositions()[0]), data->getPositions().data(), deviceLocal);
+        vertexBuffers.push_back(vboPositions);
+    }
+
+    if (data->hasColours() && data->separateColours()) {
+        vboColours = new VertexBuffer(device, data->getColours().size() * sizeof(data->getColours()[0]), data->getColours().data(), deviceLocal);
+        vertexBuffers.push_back(vboColours);
+    }
+
+    if (data->hasTextureCoords() && data->separateTextureCoords()) {
+        vboTextureCoords = new VertexBuffer(device, data->getTextureCoords().size() * sizeof(data->getTextureCoords()[0]), data->getTextureCoords().data(), deviceLocal);
+        vertexBuffers.push_back(vboTextureCoords);
+    }
+
+    if (data->hasNormals() && data->separateNormals()) {
+        vboNormals = new VertexBuffer(device, data->getNormals().size() * sizeof(data->getNormals()[0]), data->getNormals().data(), deviceLocal);
+        vertexBuffers.push_back(vboNormals);
+    }
+
+    if (data->hasTangents() && data->separateTangents()) {
+        vboTangents = new VertexBuffer(device, data->getTangents().size() * sizeof(data->getTangents()[0]), data->getTangents().data(), deviceLocal);
+        vertexBuffers.push_back(vboTangents);
+    }
+
+    if (data->hasBitangents() && data->separateBitangents()) {
+        vboBitangents = new VertexBuffer(device, data->getBitangents().size() * sizeof(data->getBitangents()[0]), data->getBitangents().data(), deviceLocal);
+        vertexBuffers.push_back(vboBitangents);
+    }
+
+    if (data->hasOthers()) {
+        vboOthers = new VertexBuffer(device, data->getOthers().size() * sizeof(data->getOthers()[0]), data->getOthers().data(), deviceLocal);
+        vertexBuffers.push_back(vboOthers);
+    }
+
+    // Setup bones
+    if (data->hasBones()) {
+        vboBoneIndices = new VertexBuffer(device, data->getBoneIndices().size() * sizeof(data->getBoneIndices()[0]), data->getBoneIndices().data(), deviceLocal);
+        vertexBuffers.push_back(vboBoneIndices);
+
+        vboBoneWeights = new VertexBuffer(device, data->getBoneWeights().size() * sizeof(data->getBoneWeights()[0]), data->getOthers().data(), deviceLocal);
+        vertexBuffers.push_back(vboBoneWeights);
+    }
+
+    // Setup material and offset indices only if assigned
+    if (data->hasMaterialIndices())
+        bufferMaterialIndices = new VertexBuffer(device, data->getMaterialIndices().size() * sizeof(data->getMaterialIndices()[0]), data->getMaterialIndices().data(), deviceLocal);
+    if (data->hasOffsetIndices())
+        bufferOffsetIndices = new VertexBuffer(device, data->getOffsetIndices().size() * sizeof(data->getOffsetIndices()[0]), data->getOffsetIndices().data(), deviceLocal);
+
+    // Setup indices
+    if (data->hasIndices())
+        ibo = new IndexBuffer(device, data->getIndices().size() * sizeof(data->getIndices()[0]), data->getIndices().data(), VK_INDEX_TYPE_UINT32, deviceLocal);
+
+    renderData = new RenderData(vertexBuffers, ibo, data->getCount());
+}
+
+MeshRenderData::~MeshRenderData() {
+    delete renderData;
+}
+
+/*****************************************************************************
+ * MeshBuilder class
+ *****************************************************************************/
+
+/* 2D Stuff */
+
+MeshData* MeshBuilder::createTriangle(Vector2f v1, Vector2f v2, Vector2f v3, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(2, flags);
+
+    data->addPosition(v1);
+    data->addPosition(v2);
+    data->addPosition(v3);
+
+    return data;
+}
+
+MeshData* MeshBuilder::createQuad(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(2, flags);
+    addQuadData(data, v1, v2, v3, v4);
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));  // Vulkan expects all GUI to have texture coord data
+    addQuadI(data);
+    return data;
+}
+
+// MeshData* MeshBuilder::createQuad(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture, MeshData::SeparateFlags flags) {
+//     MeshData* data = new MeshData(2, flags);
+//     addQuadData(data, v1, v2, v3, v4, texture);
+//     addQuadI(data);
+//     return data;
+// }
+
+MeshData* MeshBuilder::createQuad(float width, float height, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(2, flags);
+    addQuadData(data, Vector2f(0, 0), Vector2f(width, 0), Vector2f(width, height), Vector2f(0, height));
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));
+    data->addTextureCoord(Vector2f(0, 0));  // Vulkan expects all GUI to have texture coord data
+    addQuadI(data);
+    return data;
+}
+
+// MeshData* MeshBuilder::createQuad(float width, float height, Texture* texture, MeshData::SeparateFlags flags) {
+//     MeshData* data = new MeshData(2, flags);
+//     addQuadData(data, Vector2f(0, 0), Vector2f(width, 0), Vector2f(width, height), Vector2f(0, height), texture);
+//     addQuadI(data);
+//     return data;
+// }
+
+void MeshBuilder::addQuadData(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4) {
+    data->addPosition(v1);
+    data->addPosition(v2);
+    data->addPosition(v3);
+    data->addPosition(v4);
+}
+
+// void MeshBuilder::addQuadData(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture) {
+//     data->addPosition(v1);
+//     data->addTextureCoord(Vector2f(0, 0));
+//     data->addPosition(v2);
+//     data->addTextureCoord(Vector2f(1, 0));
+//     data->addPosition(v3);
+//     data->addTextureCoord(Vector2f(1, 1));
+//     data->addPosition(v4);
+//     data->addTextureCoord(Vector2f(0, 1));
+// }
+
+void MeshBuilder::addQuadI(MeshData* data) {
+    data->addIndex(0);
+    data->addIndex(1);
+    data->addIndex(2);
+    data->addIndex(3);
+    data->addIndex(0);
+    data->addIndex(2);
+}
+
+void MeshBuilder::addQuadT(MeshData* data, float top, float left, float bottom, float right) {
+    data->addTextureCoord(Vector2f(left, top));
+    data->addTextureCoord(Vector2f(right, top));
+    data->addTextureCoord(Vector2f(right, bottom));
+    data->addTextureCoord(Vector2f(left, bottom));
+}
+
+/* 3D Stuff */
+
+MeshData* MeshBuilder::createQuad3D(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(3, flags);
+    addQuadData3D(data, v1, v2, v3, v4);
+    addQuadI(data);
+    return data;
+}
+
+// MeshData* MeshBuilder::createQuad3D(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture, MeshData::SeparateFlags flags) {
+//     MeshData* data = new MeshData(3, flags);
+//     addQuadData3D(data, v1, v2, v3, v4, texture);
+//     addQuadI(data);
+//     return data;
+// }
+
+MeshData* MeshBuilder::createQuad3D(float width, float height, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(3, flags);
+    addQuadData3D(data, Vector2f(-width / 2, -height / 2), Vector2f(width / 2, -height / 2), Vector2f(width / 2, height / 2), Vector2f(-width / 2, height / 2));
+    addQuadI(data);
+    return data;
+}
+
+// MeshData* MeshBuilder::createQuad3D(float width, float height, Texture* texture, MeshData::SeparateFlags flags) {
+//     MeshData* data = new MeshData(3, flags);
+//     addQuadData3D(data, Vector2f(-width / 2, -height / 2), Vector2f(width / 2, -height / 2), Vector2f(width / 2, height / 2), Vector2f(-width / 2, height / 2), texture);
+//     addQuadI(data);
+//     return data;
+// }
+
+void MeshBuilder::addQuadData3D(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4) {
+    data->addPosition(Vector3f(v1, 0.0f));
+    data->addPosition(Vector3f(v2, 0.0f));
+    data->addPosition(Vector3f(v3, 0.0f));
+    data->addPosition(Vector3f(v4, 0.0f));
+}
+
+// void MeshBuilder::addQuadData3D(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture) {
+//     data->addPosition(Vector3f(v1));
+//     data->addTextureCoord(Vector2f(0, 0));
+//     data->addPosition(Vector3f(v2));
+//     data->addTextureCoord(Vector2f(1, 0));
+//     data->addPosition(Vector3f(v3));
+//     data->addTextureCoord(Vector2f(1, 1));
+//     data->addPosition(Vector3f(v4));
+//     data->addTextureCoord(Vector2f(0, 1));
+// }
+
+MeshData* MeshBuilder::createCube(float width, float height, float depth, MeshData::SeparateFlags flags) {
+    MeshData* data = new MeshData(3, flags);
+    addCubeData(data, width, height, depth);
+    addCubeI(data);
+    return data;
+}
+
+void MeshBuilder::addCubeData(MeshData* data, float width, float height, float depth) {
+    float w = width / 2;
+    float h = height / 2;
+    float d = depth / 2;
+    // Front face
+    data->addPosition(Vector3f(-w, h, d));
+    data->addPosition(Vector3f(w, h, d));
+    data->addPosition(Vector3f(w, -h, d));
+    data->addPosition(Vector3f(-w, -h, d));
+
+    // Left face
+    data->addPosition(Vector3f(-w, -h, d));
+    data->addPosition(Vector3f(-w, -h, -d));
+    data->addPosition(Vector3f(-w, h, -d));
+    data->addPosition(Vector3f(-w, h, d));
+
+    // Back face
+    data->addPosition(Vector3f(-w, h, -d));
+    data->addPosition(Vector3f(w, h, -d));
+    data->addPosition(Vector3f(w, -h, -d));
+    data->addPosition(Vector3f(-w, -h, -d));
+
+    // Bottom face
+    data->addPosition(Vector3f(w, -h, -d));
+    data->addPosition(Vector3f(w, -h, d));
+    data->addPosition(Vector3f(-w, -h, d));
+    data->addPosition(Vector3f(-w, -h, -d));
+
+    // Right face
+    data->addPosition(Vector3f(w, -h, -d));
+    data->addPosition(Vector3f(w, -h, d));
+    data->addPosition(Vector3f(w, h, d));
+    data->addPosition(Vector3f(w, h, -d));
+
+    // Top face
+    data->addPosition(Vector3f(-w, h, -d));
+    data->addPosition(Vector3f(-w, h, d));
+    data->addPosition(Vector3f(w, h, d));
+    data->addPosition(Vector3f(w, h, -d));
+}
+
+void MeshBuilder::addCubeI(MeshData* data) {
+    // Front face
+    // B-L triangle
+    data->addIndex(0);
+    data->addIndex(1);
+    data->addIndex(2);
+    // T-R
+    data->addIndex(2);
+    data->addIndex(3);
+    data->addIndex(0);
+
+    // Left face
+    // B-L triangle
+    data->addIndex(4);
+    data->addIndex(5);
+    data->addIndex(6);
+    // T-R
+    data->addIndex(6);
+    data->addIndex(7);
+    data->addIndex(4);
+
+    // Back face
+    // B-L triangle
+    data->addIndex(8);
+    data->addIndex(9);
+    data->addIndex(10);
+    // T-R
+    data->addIndex(10);
+    data->addIndex(11);
+    data->addIndex(8);
+
+    // Bottom face
+    // B-L triangle
+    data->addIndex(12);
+    data->addIndex(13);
+    data->addIndex(14);
+    // T-R
+    data->addIndex(14);
+    data->addIndex(15);
+    data->addIndex(12);
+
+    // Right face
+    // B-L triangle
+    data->addIndex(16);
+    data->addIndex(17);
+    data->addIndex(18);
+    // T-R
+    data->addIndex(18);
+    data->addIndex(19);
+    data->addIndex(16);
+
+    // Top face
+    // B-L triangle
+    data->addIndex(20);
+    data->addIndex(21);
+    data->addIndex(22);
+    // T-R
+    data->addIndex(22);
+    data->addIndex(23);
+    data->addIndex(20);
 }

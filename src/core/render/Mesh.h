@@ -5,6 +5,7 @@
 #include "../Sphere.h"
 #include "Colour.h"
 #include "GraphicsPipeline.h"
+#include "RenderData.h"
 #include "VertexBuffer.h"
 
 // Forward declaration
@@ -98,6 +99,9 @@ private:
        bindings) */
     unsigned int numDimensions;
 
+    /* Keeps track of number of vertices added */
+    unsigned int vertexCount = 0;
+
     /* Raw data for this mesh - all data may be kept interleaved in 'others'
        unless they are requested to be separate */
 
@@ -152,7 +156,7 @@ public:
     void addNormal(Vector3f normal);
     void addTangent(Vector3f tangent);
     void addBitangent(Vector3f bitangent);
-    void addIndex(uint32_t index);
+    inline void addIndex(uint32_t index) { indices.push_back(index); }
 
     void addBoneData(uint32_t boneIndex, float boneWeight) {
         boneIndices.push_back(boneIndex);
@@ -207,7 +211,111 @@ public:
     inline size_t getSubDataCount() { return subData.size(); }
     inline SubData& getSubData(unsigned int index) { return subData[index]; }
 
+    /* Returns the number of positions or indices depending on whether this
+       data has indices or not */
+    inline uint32_t getCount() {
+        if (hasIndices())
+            return static_cast<uint32_t>(indices.size());
+        else
+            return vertexCount;
+    }
+
     /* Static method to construct vertex input bindings and attributes given the
        required data and whether they should be separated from the others */
     static GraphicsPipeline::VertexInputDescription computeVertexInputDescription(unsigned int numDimensions, std::vector<DataType> requiredData, SeparateFlags flags, ShaderInterface shaderInterface);
+};
+
+/*****************************************************************************
+ * MeshRenderData class - Stores the buffers required for rendering a Mesh
+ *****************************************************************************/
+
+class MeshRenderData {
+private:
+    /* Render data instance for this mesh - actually handles rendering */
+    RenderData* renderData;
+
+    /* Various vertex buffers for this mesh (Most are only assigned when
+       the data is separated/are defined as being updatable) */
+    VertexBuffer* vboPositions     = nullptr;
+    VertexBuffer* vboColours       = nullptr;
+    VertexBuffer* vboTextureCoords = nullptr;
+    VertexBuffer* vboNormals       = nullptr;
+    VertexBuffer* vboTangents      = nullptr;
+    VertexBuffer* vboBitangents    = nullptr;
+    VertexBuffer* vboBoneIndices   = nullptr;
+    VertexBuffer* vboBoneWeights   = nullptr;
+    VertexBuffer* vboOthers        = nullptr;
+
+    VertexBuffer* bufferMaterialIndices = nullptr;
+    VertexBuffer* bufferOffsetIndices   = nullptr;
+
+    /* Index buffer (May be nullptr) */
+    IndexBuffer* ibo;
+
+public:
+    /* Constructor and destructor */
+    MeshRenderData(VulkanDevice* device, MeshData* data);
+    virtual ~MeshRenderData();
+
+    /* Method to render using the data */
+    inline void render(VkCommandBuffer commandBuffer) {
+        renderData->render(commandBuffer);
+    }
+
+    // TODO: Add methods to update buffers that are separated
+};
+
+/*****************************************************************************
+ * MeshBuilder class- Contains methods to create and populate a mesh data
+ *                    instance
+ *****************************************************************************/
+
+class MeshBuilder {
+public:
+    /* 2D Stuff */
+
+    /* Creates a MeshData instance for a triangle given its 3 corners */
+    static MeshData* createTriangle(Vector2f v1, Vector2f v2, Vector2f v3, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+
+    /* Creates a MeshData instance for a quad, given its 4 corners */
+    static MeshData* createQuad(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Create a MeshData instance for a quad, given its 4 corners and texture */
+    // static MeshData* createQuad(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Creates a MeshData instance for a quad (rectangle/square in this case) given its width and height */
+    static MeshData* createQuad(float width, float height, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Creates a MeshData instance for a textured quad (rectangle/square in this case) given its width and height */
+    // static MeshData* createQuad(float width, float height, Texture* texture, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+
+    /* Adds the required data for a quad to a MeshData instance given its 4 corners */
+    static void addQuadData(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4);
+    /* Adds the required data for a textured quad to a MeshData instance given its 4 corners */
+    // static void addQuadData(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture);
+    /* Adds the indices for a quad to a MeshData instance */
+    static void addQuadI(MeshData* data);
+    /* Adds the texture coordinates for a quad to a MeshData instance */
+    static void addQuadT(MeshData* data, float top, float left, float bottom, float right);
+
+    /* 3D Stuff */
+
+    /* Creates a MeshData instance for a quad, given its 4 corners */
+    static MeshData* createQuad3D(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Creates a MeshData instance for a quad, given its 4 corners and the texture */
+    // static MeshData* createQuad3D(Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Creates a MeshData instance for a quad (rectangle/square in this case) given its width and height */
+    static MeshData* createQuad3D(float width, float height, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+    /* Creates a MeshData instance for a textured quad (rectangle/square in this case) given its width and height */
+    // static MeshData* createQuad3D(float width, float height, Texture* texture, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+
+    /* Adds the required data for a quad to a MeshData instance given its 4 corners */
+    static void addQuadData3D(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4);
+    /* Adds the required data for a textured quad to a MeshData instance given its 4 corners */
+    // static void addQuadData3D(MeshData* data, Vector2f v1, Vector2f v2, Vector2f v3, Vector2f v4, Texture* texture);
+
+    /* Creates a MeshData instance for a cube given its width, height and depth */
+    static MeshData* createCube(float width, float height, float depth, MeshData::SeparateFlags flags = MeshData::SEPARATE_NONE);
+
+    /* Adds the required data for a quad to a MeshData instance given its width, height and depth */
+    static void addCubeData(MeshData* data, float width, float height, float depth);
+    /* Adds the indices for a cube to a MeshData instance */
+    static void addCubeI(MeshData* data);
 };

@@ -11,7 +11,7 @@
 class ShaderGroup;
 class GraphicsPipeline;
 class GraphicsPipelineLayout;
-class RenderData;
+class MeshRenderData;
 
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
@@ -49,7 +49,7 @@ private:
     RenderPass* renderPass;
     GraphicsPipeline* pipeline;
     std::vector<Framebuffer*> swapChainFramebuffers;
-    RenderData* renderData;
+    MeshRenderData* meshRenderData;
 
 public:
     /* Constructor and destructors */

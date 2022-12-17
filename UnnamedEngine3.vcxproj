@@ -36,6 +36,7 @@
     <ClInclude Include="src\core\render\ShaderInterface.h" />
     <ClInclude Include="src\core\render\VertexBuffer.h" />
     <ClInclude Include="src\core\Settings.h" />
+    <ClInclude Include="src\core\Sphere.h" />
     <ClInclude Include="src\core\vulkan\VulkanBuffer.h" />
     <ClInclude Include="src\core\vulkan\VulkanDevice.h" />
     <ClInclude Include="src\core\vulkan\VulkanExtensions.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="src\core\vulkan\VulkanResizableResource.h" />
     <ClInclude Include="src\core\vulkan\VulkanResource.h" />
     <ClInclude Include="src\core\vulkan\SwapChain.h" />
+    <ClInclude Include="src\core\vulkan\VulkanUtils.h" />
     <ClInclude Include="src\core\vulkan\VulkanValidationLayers.h" />
     <ClInclude Include="src\core\Window.h" />
     <ClInclude Include="src\core\WindowResizeListener.h" />

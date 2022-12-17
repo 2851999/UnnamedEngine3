@@ -59,23 +59,23 @@ void BaseEngine::create() {
         // Listen for recreation events
         swapChain->addListener(this);
 
+        MeshData* meshData = new MeshData(MeshData::DIMENSIONS_2D);
+
         // clang-format off
-        std::vector<float> vertexData = {
-            -0.5f, -0.5f,   1.0f, 0.0f, 0.0f, 1.0f,
-             0.5f, -0.5f,   0.0f, 1.0f, 0.0f, 1.0f,
-             0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 1.0f,
-            -0.5f,  0.5f,   1.0f, 1.0f, 1.0f, 1.0f
-        };
-        // Possible types are VK_INDEX_TYPE_UINT16 or VK_INDEX_TYPE_UINT32
-        std::vector<uint16_t> indexData = {
-            0, 1, 2, 2, 3, 0
-        };
+        meshData->addPosition(Vector2f(-0.5f, -0.5f)); meshData->addColour(Colour(1.0f, 0.0f, 0.0f, 1.0f));
+        meshData->addPosition(Vector2f( 0.5f, -0.5f)); meshData->addColour(Colour(0.0f, 1.0f, 0.0f, 1.0f));
+        meshData->addPosition(Vector2f( 0.5f,  0.5f)); meshData->addColour(Colour(0.0f, 0.0f, 1.0f, 1.0f));
+        meshData->addPosition(Vector2f(-0.5f,  0.5f)); meshData->addColour(Colour(1.0f, 1.0f, 1.0f, 1.0f));
+        meshData->addIndex(0);
+        meshData->addIndex(1);
+        meshData->addIndex(2);
+        meshData->addIndex(2);
+        meshData->addIndex(3);
+        meshData->addIndex(0);
         // clang-format on
 
-        renderData = new RenderData(
-            {new VertexBuffer(vulkanDevice, sizeof(float) * vertexData.size(), vertexData.data(), true)},
-            new IndexBuffer(vulkanDevice, sizeof(uint16_t) * indexData.size(), indexData.data(), VK_INDEX_TYPE_UINT16, true),
-            6);
+        meshRenderData = new MeshRenderData(vulkanDevice, meshData);
+        delete meshData;
 
         ShaderInterface shaderInterface;
         shaderInterface.addAttributeLocation(MeshData::POSITION, 0);
@@ -161,7 +161,7 @@ void BaseEngine::create() {
         // Destroy the Vulkan swap chain and device
         for (unsigned int i = 0; i < swapChainFramebuffers.size(); ++i)
             delete swapChainFramebuffers[i];
-        delete renderData;
+        delete meshRenderData;
         delete pipeline;
         delete pipelineLayout;
         delete renderPass;
@@ -207,7 +207,7 @@ void BaseEngine::drawFrame() {
     // Perform any rendering
     this->render();
 
-    renderData->render(commandBuffers[currentFrame]);
+    meshRenderData->render(commandBuffers[currentFrame]);
 
     renderPass->end(commandBuffers[currentFrame]);
 
