@@ -22,12 +22,22 @@ private:
     /* States whether we need staging for copying data */
     bool stagingNeeded;
 
+    /* States whether this buffer should use a persistent mapping (when true
+       keeps memory mapped and reuses instead of unmapping each time - best
+       for when updating frequently - can only be used if staging not needed
+       i.e. for memory that is either not device local or can use resizable
+       bar) */
+    bool persistentMapping;
+
+    /* Pointer to mapped memory (used if above is true) */
+    void* mappedMemory;
+
     /* Copies data into some device memory */
     void copy(const void* data, VkDeviceSize size, VkDeviceMemory deviceMemory);
 
 public:
     /* Constructor and destructor (data can be nullptr)*/
-    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal);
+    VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal, bool persistentMapping);
     virtual ~VulkanBuffer();
 
     /* Copies data into the buffer */

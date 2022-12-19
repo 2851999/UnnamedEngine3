@@ -15,7 +15,7 @@ public:
     /* Constructor and destructor (data can be nullptr) - Uses
        VK_SHARING_MODE_EXCLUSIVE here as we assume it will only be used in
        the graphics queue family */
-    IndexBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkIndexType indexType, bool deviceLocal) : VulkanBuffer(device, size, data, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, deviceLocal), indexType(indexType) {}
+    IndexBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkIndexType indexType, bool deviceLocal, bool persistentMapping) : VulkanBuffer(device, size, data, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE, deviceLocal, persistentMapping), indexType(indexType) {}
     virtual ~IndexBuffer() {}
 
     /* Binds this buffer */

@@ -4,7 +4,7 @@
  * VulkanBuffer class
  *****************************************************************************/
 
-VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal) : VulkanResource(device), size(size) {
+VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal, bool persistent) : VulkanResource(device), size(size), persistentMapping(persistentMapping) {
     // Create the buffer
     // TODO: Try and get rid of need for VK_BUFFER_USAGE_TRANSFER_DST_BIT -
     //       trouble is cant be sure of supported memoryTypeBits until
@@ -25,12 +25,26 @@ VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, 
     // host visible and coherent)
     this->stagingNeeded = deviceLocal && chosenFlags == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
+    // Map memory now if persistent
+    if (persistentMapping) {
+        // TODO: Avoid this - only because below map the memory here and not for the staging buffer
+        //       then again likely not a good idea to have device local and have this anyway (but
+        //       resizable bar may be worth it)
+        if (deviceLocal)
+            Logger::log("Should not use persistent mapping and device local at the moment", "VulkanBuffer", LogType::Warning);
+        if (stagingNeeded)
+            Logger::logAndThrowError("Cannot have a persistent mapping with staging", "VulkanBuffer");
+        vkMapMemory(device->getVkLogical(), memory, 0, size, 0, &mappedMemory);
+    }
+
     // Copy data if given
     if (data)
         copy(data, size);
 }
 
 VulkanBuffer::~VulkanBuffer() {
+    if (persistentMapping)
+        vkUnmapMemory(device->getVkLogical(), memory);
     device->destroyBuffer(instance);
     device->freeMemory(memory);
 }
@@ -46,11 +60,14 @@ void VulkanBuffer::copy(const void* data, VkDeviceSize size, VkDeviceMemory devi
     // vkFlushMappedMemoryRanges/vkInvalidateMappedMemoryRanges)
     // TODO: Look at these and other types of memory flags
 
-    // TODO: Allow persistent mappings (see https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer)
-    void* mappedMemory;
-    vkMapMemory(device->getVkLogical(), deviceMemory, 0, size, 0, &mappedMemory);
-    memcpy(mappedMemory, data, static_cast<size_t>(size));
-    vkUnmapMemory(device->getVkLogical(), deviceMemory);
+    if (persistentMapping)
+        memcpy(mappedMemory, data, static_cast<size_t>(size));
+    else {
+        void* mappedMemory;
+        vkMapMemory(device->getVkLogical(), deviceMemory, 0, size, 0, &mappedMemory);
+        memcpy(mappedMemory, data, static_cast<size_t>(size));
+        vkUnmapMemory(device->getVkLogical(), deviceMemory);
+    }
 }
 
 void VulkanBuffer::copy(const void* data, VkDeviceSize size) {
