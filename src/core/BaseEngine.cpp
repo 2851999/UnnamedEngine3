@@ -2,6 +2,7 @@
 
 #include "../utils/Logging.h"
 #include "../utils/TimeUtils.h"
+#include "render/DescriptorSet.h"
 #include "render/Framebuffer.h"
 #include "render/GraphicsPipeline.h"
 #include "render/Mesh.h"
@@ -80,6 +81,9 @@ void BaseEngine::create() {
         ShaderInterface shaderInterface;
         shaderInterface.addAttributeLocation(MeshData::POSITION, 0);
         shaderInterface.addAttributeLocation(MeshData::COLOUR, 1);
+
+        descriptorSetLayout = new DescriptorSetLayout(vulkanDevice);
+        descriptorSetLayout->addUBO(0, VK_SHADER_STAGE_VERTEX_BIT);
 
         shaderGroup           = ShaderGroup::load(vulkanDevice, "./resources/shaders/simple");
         pipelineLayout        = new GraphicsPipelineLayout(vulkanDevice);
@@ -164,6 +168,7 @@ void BaseEngine::create() {
         delete meshRenderData;
         delete pipeline;
         delete pipelineLayout;
+        delete descriptorSetLayout;
         delete renderPass;
         delete shaderGroup;
         delete swapChain;

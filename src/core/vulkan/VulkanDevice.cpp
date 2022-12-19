@@ -188,6 +188,58 @@ VulkanDevice::FoundMemoryType VulkanDevice::findMemoryType(uint32_t typeBits, Vk
     return {0, 0};  // Stop compiler warnings
 };
 
+VkMemoryPropertyFlags VulkanDevice::allocateBufferMemoryResizableBar(VkBuffer buffer, VkDeviceMemory& memory, bool deviceLocal) {
+    // TODO: Cleanup
+
+    // Obtain the buffer's memory requirements
+    VkMemoryRequirements memoryRequirements;
+    vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
+
+    // Memory allocation info
+    VkMemoryAllocateInfo memoryAllocateInfo{};
+    memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memoryAllocateInfo.allocationSize = memoryRequirements.size;
+
+    VkMemoryPropertyFlags requiredFlags;
+    VkMemoryPropertyFlags optionalFlags;
+    if (deviceLocal) {
+        requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+        optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    } else {
+        requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    }
+
+    VkMemoryPropertyFlags chosenFlags;
+    FoundMemoryType memoryType1 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    FoundMemoryType memoryType2 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    FoundMemoryType chosenMemoryType;
+
+    if (memoryType1.heapIndex == memoryType2.heapIndex) {
+        chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        chosenMemoryType = memoryType2;
+    } else {
+        if (deviceLocal) {
+            chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+            chosenMemoryType = memoryType1;
+        } else {
+            chosenFlags      = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+            chosenMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, chosenFlags);
+        }
+    }
+
+    memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
+
+    // Attempt allocation
+    if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
+        Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
+
+    // Associate memory with the buffer
+    vkBindBufferMemory(logicalDevice, buffer, memory, 0);
+
+    return chosenFlags;
+}
+
 VkCommandBuffer VulkanDevice::beginSingleTimeGraphicsCommands() {
     // Allocate a buffer
     VkCommandBuffer commandBuffer;

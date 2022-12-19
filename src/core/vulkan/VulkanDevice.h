@@ -191,6 +191,20 @@ public:
             Logger::logAndThrowError("Failed to create buffer", "VulkanDevice");
     }
 
+    inline void createDescriptorSetLayout(uint32_t bindingCount, const VkDescriptorSetLayoutBinding* pBindings, VkDescriptorSetLayout* pSetLayout) {
+        // Create info
+        VkDescriptorSetLayoutCreateInfo createInfo{};
+        createInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        createInfo.pNext        = nullptr;
+        createInfo.flags        = 0;
+        createInfo.bindingCount = bindingCount;
+        createInfo.pBindings    = pBindings;
+
+        // Attempt creation
+        if (vkCreateDescriptorSetLayout(logicalDevice, &createInfo, nullptr, pSetLayout) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create descriptor set layout", "VulkanDevice");
+    }
+
     /* Various methods to destroy resources using this device */
     inline void destroyImageView(VkImageView imageView) {
         vkDestroyImageView(logicalDevice, imageView, nullptr);
@@ -206,6 +220,10 @@ public:
 
     inline void destroyBuffer(VkBuffer buffer) {
         vkDestroyBuffer(logicalDevice, buffer, nullptr);
+    }
+
+    inline void destroyDescriptorSetLayout(VkDescriptorSetLayout desctriptorSetLayout) {
+        vkDestroyDescriptorSetLayout(logicalDevice, desctriptorSetLayout, nullptr);
     }
 
     /* Allocates some device memory for a buffer - also binds its use to the
@@ -241,58 +259,7 @@ public:
        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT or VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
        under the same conditions
     */
-    inline VkMemoryPropertyFlags allocateBufferMemoryResizableBar(VkBuffer buffer, VkDeviceMemory& memory, bool deviceLocal) {
-        // TODO: Cleanup
-
-        // Obtain the buffer's memory requirements
-        VkMemoryRequirements memoryRequirements;
-        vkGetBufferMemoryRequirements(logicalDevice, buffer, &memoryRequirements);
-
-        // Memory allocation info
-        VkMemoryAllocateInfo memoryAllocateInfo{};
-        memoryAllocateInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        memoryAllocateInfo.allocationSize = memoryRequirements.size;
-
-        VkMemoryPropertyFlags requiredFlags;
-        VkMemoryPropertyFlags optionalFlags;
-        VkMemoryPropertyFlags queryFlags;
-        if (deviceLocal) {
-            requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-            optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        } else {
-            requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            optionalFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        }
-
-        VkMemoryPropertyFlags chosenFlags;
-        FoundMemoryType memoryType1 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        FoundMemoryType memoryType2 = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        FoundMemoryType chosenMemoryType;
-
-        if (memoryType1.heapIndex == memoryType2.heapIndex) {
-            chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-            chosenMemoryType = memoryType2;
-        } else {
-            if (deviceLocal) {
-                chosenFlags      = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-                chosenMemoryType = memoryType1;
-            } else {
-                chosenFlags      = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-                chosenMemoryType = findMemoryType(memoryRequirements.memoryTypeBits, chosenFlags);
-            }
-        }
-
-        memoryAllocateInfo.memoryTypeIndex = chosenMemoryType.index;
-
-        // Attempt allocation
-        if (vkAllocateMemory(logicalDevice, &memoryAllocateInfo, nullptr, &memory) != VK_SUCCESS)
-            Logger::logAndThrowError("Failed to allocate buffer memory", "VulkanDevice");
-
-        // Associate memory with the buffer
-        vkBindBufferMemory(logicalDevice, buffer, memory, 0);
-
-        return chosenFlags;
-    }
+    VkMemoryPropertyFlags allocateBufferMemoryResizableBar(VkBuffer buffer, VkDeviceMemory& memory, bool deviceLocal);
 
     /* Frees some allocated memory */
     inline void freeMemory(VkDeviceMemory memory) {
