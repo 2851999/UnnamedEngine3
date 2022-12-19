@@ -45,6 +45,8 @@ void VulkanBuffer::copy(const void* data, VkDeviceSize size, VkDeviceMemory devi
     // before vkQueueSubmit is called later (otherwise need
     // vkFlushMappedMemoryRanges/vkInvalidateMappedMemoryRanges)
     // TODO: Look at these and other types of memory flags
+
+    // TODO: Allow persistent mappings (see https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer)
     void* mappedMemory;
     vkMapMemory(device->getVkLogical(), deviceMemory, 0, size, 0, &mappedMemory);
     memcpy(mappedMemory, data, static_cast<size_t>(size));

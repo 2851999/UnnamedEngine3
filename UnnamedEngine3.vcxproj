@@ -32,6 +32,7 @@
     <ClInclude Include="src\core\render\IndexBuffer.h" />
     <ClInclude Include="src\core\render\Mesh.h" />
     <ClInclude Include="src\core\render\RenderData.h" />
+    <ClInclude Include="src\core\render\Renderer.h" />
     <ClInclude Include="src\core\render\RenderPass.h" />
     <ClInclude Include="src\core\render\Shader.h" />
     <ClInclude Include="src\core\render\ShaderInterface.h" />
@@ -66,6 +67,7 @@
     <ClCompile Include="src\core\render\GraphicsPipeline.cpp" />
     <ClCompile Include="src\core\render\Mesh.cpp" />
     <ClCompile Include="src\core\render\RenderData.cpp" />
+    <ClCompile Include="src\core\render\Renderer.cpp" />
     <ClCompile Include="src\core\render\RenderPass.cpp" />
     <ClCompile Include="src\core\render\Shader.cpp" />
     <ClCompile Include="src\core\render\ShaderInterface.cpp" />

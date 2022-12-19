@@ -4,7 +4,7 @@
 #include "Settings.h"
 #include "Window.h"
 #include "input/Input.h"
-#include "vulkan/SwapChain.h"
+#include "render/Renderer.h"
 #include "vulkan/VulkanInstance.h"
 
 // TODO: Remove these
@@ -18,7 +18,7 @@ class DescriptorSetLayout;
  * BaseEngine class - Handles setup and execution of the main engine loop
  *****************************************************************************/
 
-class BaseEngine : public InputListener, SwapChainListener {
+class BaseEngine : public InputListener {
 private:
     /* Engine settings*/
     Settings settings{};
@@ -37,19 +37,11 @@ private:
     VulkanInstance* vulkanInstance = nullptr;
 
     /* TODO: Remove */
-    const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
-    unsigned int currentFrame               = 0;
-    std::vector<VkCommandBuffer> commandBuffers;
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
     VulkanDevice* vulkanDevice;
-    SwapChain* swapChain;
+    Renderer* renderer;
     ShaderGroup* shaderGroup;
     GraphicsPipelineLayout* pipelineLayout;
-    RenderPass* renderPass;
     GraphicsPipeline* pipeline;
-    std::vector<Framebuffer*> swapChainFramebuffers;
     MeshRenderData* meshRenderData;
     DescriptorSetLayout* descriptorSetLayout;
 
@@ -79,7 +71,6 @@ public:
 
     /* TODO: Move??? */
     void drawFrame();
-    void onSwapChainRecreation(float scaleX, float scaleY) override;
 
     /* Returns a reference to the settings for assigning */
     inline Settings& getSettings() { return settings; }
