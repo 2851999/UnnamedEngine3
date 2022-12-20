@@ -84,9 +84,8 @@ void BaseEngine::create() {
         descriptorSetLayout->addUBO(0, VK_SHADER_STAGE_VERTEX_BIT);
         descriptorSetLayout->create();
 
-        // TODO: Test when not updatable (seems to fail)
         descriptorSet = new DescriptorSet(renderer, descriptorSetLayout, true);
-        shaderBlockTest.test = 1.0f;
+        shaderBlockTest.test = 0.1f;
         testUBO       = new UBO(renderer, sizeof(ShaderBlock_Test), &shaderBlockTest, false, true, false);
         descriptorSet->setup({testUBO});
 

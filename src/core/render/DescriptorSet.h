@@ -101,5 +101,5 @@ public:
 
     /* Binds this descriptor set using a given command buffer */
     // TODO: Simplify this?
-    inline void bind(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet) { vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, pipelineLayout, firstSet, 1, updatable ? &instances[0] : &instances[renderer->getCurrentFrame()], 0, nullptr); }
+    inline void bind(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet) { vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, pipelineLayout, firstSet, 1, updatable ? &instances[renderer->getCurrentFrame()] : &instances[0], 0, nullptr); }
 };
