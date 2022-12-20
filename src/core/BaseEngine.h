@@ -13,6 +13,8 @@ class GraphicsPipeline;
 class GraphicsPipelineLayout;
 class MeshRenderData;
 class DescriptorSetLayout;
+class DescriptorSet;
+class UBO;
 
 /*****************************************************************************
  * BaseEngine class - Handles setup and execution of the main engine loop
@@ -44,6 +46,13 @@ private:
     GraphicsPipeline* pipeline;
     MeshRenderData* meshRenderData;
     DescriptorSetLayout* descriptorSetLayout;
+    DescriptorSet* descriptorSet;
+
+    struct ShaderBlock_Test {
+        float test;
+    };
+    ShaderBlock_Test shaderBlockTest;
+    UBO* testUBO;
 
 public:
     /* Constructor and destructors */

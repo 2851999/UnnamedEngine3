@@ -32,6 +32,9 @@ private:
     /* Pointer to mapped memory (used if above is true) */
     void* mappedMemory;
 
+    /* Descriptor buffer info - only used for descriptor sets */
+    VkDescriptorBufferInfo bufferInfo;
+
     /* Copies data into some device memory */
     void copy(const void* data, VkDeviceSize size, VkDeviceMemory deviceMemory);
 
@@ -45,4 +48,7 @@ public:
 
     /* Returns the Vulkan instance of this buffer */
     inline VkBuffer getVkInstance() { return instance; }
+
+    /* Returns descriptor info about this buffer (for descriptor sets) */
+    inline const VkDescriptorBufferInfo* getVkDescriptorBufferInfo() { return &bufferInfo; }
 };

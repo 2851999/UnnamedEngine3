@@ -10,6 +10,7 @@
 #include "render/RenderPass.h"
 #include "render/Shader.h"
 #include "render/ShaderInterface.h"
+#include "render/UBO.h"
 
 /*****************************************************************************
  * BaseEngine class
@@ -81,6 +82,11 @@ void BaseEngine::create() {
 
         descriptorSetLayout = new DescriptorSetLayout(vulkanDevice);
         descriptorSetLayout->addUBO(0, VK_SHADER_STAGE_VERTEX_BIT);
+        descriptorSetLayout->create();
+
+        descriptorSet = new DescriptorSet(renderer, descriptorSetLayout, false);
+        testUBO       = new UBO(renderer, sizeof(ShaderBlock_Test), &shaderBlockTest, false, true, false);
+        descriptorSet->setup({testUBO});
 
         shaderGroup    = ShaderGroup::load(vulkanDevice, "./resources/shaders/simple");
         pipelineLayout = new GraphicsPipelineLayout(vulkanDevice);
@@ -128,6 +134,8 @@ void BaseEngine::create() {
         delete meshRenderData;
         delete pipeline;
         delete pipelineLayout;
+        delete testUBO;
+        delete descriptorSet;
         delete descriptorSetLayout;
         delete shaderGroup;
         delete renderer;

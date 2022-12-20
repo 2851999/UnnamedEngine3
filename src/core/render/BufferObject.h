@@ -16,6 +16,11 @@ private:
     /* Whether this buffer object is updatable */
     bool updatable;
 
+protected:
+    /* Returns the buffer for a specific frame (if not updatable then there will
+       only be one and will return that one) */
+    inline VulkanBuffer* getBuffer(unsigned int frame) { return updatable ? buffers[frame] : buffers[0]; }
+
 public:
     /* Constructor (data can be nullptr) */
     BufferObject(Renderer* renderer, VkDeviceSize size, void* data, VkBufferUsageFlags usage, VkSharingMode sharingMode, bool deviceLocal, bool persistentMapping, bool updatable);

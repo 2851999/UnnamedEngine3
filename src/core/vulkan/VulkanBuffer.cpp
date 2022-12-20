@@ -40,6 +40,11 @@ VulkanBuffer::VulkanBuffer(VulkanDevice* device, VkDeviceSize size, void* data, 
     // Copy data if given
     if (data)
         copy(data, size);
+
+    // For now we assume whole buffer is used
+    bufferInfo.buffer = instance;
+    bufferInfo.offset = 0;
+    bufferInfo.range  = VK_WHOLE_SIZE;
 }
 
 VulkanBuffer::~VulkanBuffer() {

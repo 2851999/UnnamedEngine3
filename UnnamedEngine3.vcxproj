@@ -30,14 +30,15 @@
     <ClInclude Include="src\core\render\DescriptorSet.h" />
     <ClInclude Include="src\core\render\Framebuffer.h" />
     <ClInclude Include="src\core\render\GraphicsPipeline.h" />
-    <ClInclude Include="src\core\render\IndexBuffer.h" />
+    <ClInclude Include="src\core\render\IBO.h" />
     <ClInclude Include="src\core\render\Mesh.h" />
     <ClInclude Include="src\core\render\RenderData.h" />
     <ClInclude Include="src\core\render\Renderer.h" />
+    <ClInclude Include="src\core\render\RendererResource.h" />
     <ClInclude Include="src\core\render\RenderPass.h" />
     <ClInclude Include="src\core\render\Shader.h" />
     <ClInclude Include="src\core\render\ShaderInterface.h" />
-    <ClInclude Include="src\core\render\VertexBuffer.h" />
+    <ClInclude Include="src\core\render\VBO.h" />
     <ClInclude Include="src\core\Settings.h" />
     <ClInclude Include="src\core\Sphere.h" />
     <ClInclude Include="src\core\vulkan\VulkanBuffer.h" />

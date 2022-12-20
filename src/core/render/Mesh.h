@@ -6,7 +6,7 @@
 #include "Colour.h"
 #include "GraphicsPipeline.h"
 #include "RenderData.h"
-#include "VertexBuffer.h"
+#include "VBO.h"
 
 // Forward declaration
 class ShaderInterface;
@@ -236,21 +236,21 @@ private:
 
     /* Various vertex buffers for this mesh (Most are only assigned when
        the data is separated/are defined as being updatable) */
-    VertexBuffer* vboPositions     = nullptr;
-    VertexBuffer* vboColours       = nullptr;
-    VertexBuffer* vboTextureCoords = nullptr;
-    VertexBuffer* vboNormals       = nullptr;
-    VertexBuffer* vboTangents      = nullptr;
-    VertexBuffer* vboBitangents    = nullptr;
-    VertexBuffer* vboBoneIndices   = nullptr;
-    VertexBuffer* vboBoneWeights   = nullptr;
-    VertexBuffer* vboOthers        = nullptr;
+    VBO* vboPositions     = nullptr;
+    VBO* vboColours       = nullptr;
+    VBO* vboTextureCoords = nullptr;
+    VBO* vboNormals       = nullptr;
+    VBO* vboTangents      = nullptr;
+    VBO* vboBitangents    = nullptr;
+    VBO* vboBoneIndices   = nullptr;
+    VBO* vboBoneWeights   = nullptr;
+    VBO* vboOthers        = nullptr;
 
-    VertexBuffer* bufferMaterialIndices = nullptr;
-    VertexBuffer* bufferOffsetIndices   = nullptr;
+    VBO* bufferMaterialIndices = nullptr;
+    VBO* bufferOffsetIndices   = nullptr;
 
     /* Index buffer (May be nullptr) */
-    IndexBuffer* ibo;
+    IBO* ibo;
 
 public:
     /* Constructor and destructor */

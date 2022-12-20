@@ -205,6 +205,19 @@ public:
             Logger::logAndThrowError("Failed to create descriptor set layout", "VulkanDevice");
     }
 
+    inline void createDescriptorPool(VkDescriptorPoolCreateFlags flags, uint32_t maxSets, uint32_t poolSizeCount, const VkDescriptorPoolSize* pPoolSizes, VkDescriptorPool* pDescriptorPool) {
+        // Create info
+        VkDescriptorPoolCreateInfo createInfo{};
+        createInfo.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.maxSets       = maxSets;
+        createInfo.poolSizeCount = poolSizeCount;
+        createInfo.pPoolSizes    = pPoolSizes;
+
+        // Attempt creation
+        if (vkCreateDescriptorPool(logicalDevice, &createInfo, nullptr, pDescriptorPool) != VK_SUCCESS)
+            Logger::logAndThrowError("Failed to create descriptor pool", "VulkanDevice");
+    }
+
     /* Various methods to destroy resources using this device */
     inline void destroyImageView(VkImageView imageView) {
         vkDestroyImageView(logicalDevice, imageView, nullptr);
@@ -224,6 +237,10 @@ public:
 
     inline void destroyDescriptorSetLayout(VkDescriptorSetLayout desctriptorSetLayout) {
         vkDestroyDescriptorSetLayout(logicalDevice, desctriptorSetLayout, nullptr);
+    }
+
+    inline void destroyDescriptorPool(VkDescriptorPool descriptorPool) {
+        vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
     }
 
     /* Allocates some device memory for a buffer - also binds its use to the

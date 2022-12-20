@@ -4,19 +4,19 @@
  * RenderData class
  *****************************************************************************/
 
-RenderData::RenderData(std::vector<VertexBuffer*> vertexBuffers, IndexBuffer* indexBuffer, uint32_t count) : vertexBuffers(vertexBuffers), indexBuffer(indexBuffer), count(count) {
-    vertexBufferInstances.resize(vertexBuffers.size());
-    vertexBufferOffsets.resize(vertexBuffers.size());
+RenderData::RenderData(std::vector<VBO*> vbos, IBO* ibo, uint32_t count) : vbos(vbos), ibo(ibo), count(count) {
+    vertexBufferInstances.resize(vbos.size());
+    vertexBufferOffsets.resize(vbos.size());
     for (unsigned int i = 0; i < vertexBufferOffsets.size(); ++i)
         vertexBufferOffsets[i] = 0;
 }
 
 RenderData::~RenderData() {
     // Destroy all buffers
-    for (VertexBuffer* vertexBuffer : vertexBuffers)
-        delete vertexBuffer;
-    if (indexBuffer)
-        delete indexBuffer;
+    for (VBO* vbo : vbos)
+        delete vbo;
+    if (ibo)
+        delete ibo;
 }
 
 void RenderData::render(VkCommandBuffer commandBuffer) {
@@ -25,15 +25,15 @@ void RenderData::render(VkCommandBuffer commandBuffer) {
     // TODO: Allow instances
     // TODO: Stop doing this here (unless need multiple for each frame in flight)
     VkDeviceSize offsets[] = {0};
-    for (unsigned int i = 0; i < vertexBuffers.size(); ++i)
-        vertexBufferInstances[i] = vertexBuffers[i]->getCurrentBuffer()->getVkInstance();
+    for (unsigned int i = 0; i < vbos.size(); ++i)
+        vertexBufferInstances[i] = vbos[i]->getCurrentBuffer()->getVkInstance();
 
     vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBufferInstances.size()), vertexBufferInstances.data(), offsets);
 
     // Check if have indices
-    if (indexBuffer) {
+    if (ibo) {
         // Bind index buffer and draw
-        indexBuffer->bind(commandBuffer);
+        ibo->bind(commandBuffer);
 
         vkCmdDrawIndexed(commandBuffer, count, instanceCount, 0, 0, 0);
     } else {

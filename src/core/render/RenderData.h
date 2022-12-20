@@ -1,7 +1,7 @@
 #pragma once
 
-#include "IndexBuffer.h"
-#include "VertexBuffer.h"
+#include "IBO.h"
+#include "VBO.h"
 
 /*****************************************************************************
  * RenderData class - Handles the data required for rendering some data
@@ -10,10 +10,10 @@
 class RenderData {
 private:
     /* Vertex buffers */
-    std::vector<VertexBuffer*> vertexBuffers;
+    std::vector<VBO*> vbos;
 
     /* Index buffer */
-    IndexBuffer* indexBuffer;
+    IBO* ibo;
 
     /* Actual instance identifiers for vertex buffer */
     std::vector<VkBuffer> vertexBufferInstances;
@@ -29,7 +29,7 @@ private:
 
 public:
     /* Constructor and destructor */
-    RenderData(std::vector<VertexBuffer*> vertexBuffers, IndexBuffer* indexBuffer, uint32_t count);
+    RenderData(std::vector<VBO*> vbos, IBO* ibo, uint32_t count);
     virtual ~RenderData();
 
     /* Issues the command to render this mesh */

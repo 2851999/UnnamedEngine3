@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../vulkan/VulkanResource.h"
+#include "RendererResource.h"
 
 /*****************************************************************************
  * DescriptorSetLayout class - For handling a descriptor set layout
@@ -44,7 +45,57 @@ public:
     inline void addUBO(uint32_t binding, VkShaderStageFlags stageFlags) { addBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, stageFlags); }
 
     /* Returns the Vulkan instance */
-    VkDescriptorSetLayout getVkLayout() const {
-        return instance;
-    }
+    inline VkDescriptorSetLayout getVkLayout() const { return instance; }
+
+    /* Returns the binding infos */
+    inline std::vector<BindingInfo>& getBindingInfos() { return bindingInfos; }
+};
+
+/*****************************************************************************
+ * DescriptorSetResource class - Base class for resources that can be added
+ *                               to a descriptor set
+ *****************************************************************************/
+
+class DescriptorSetResource {
+public:
+    /* Should be implemented for use when setting up and updating a descriptor
+       set */
+    virtual VkWriteDescriptorSet initWriteDescriptorSet(unsigned int frame, VkDescriptorSet dstSet, uint32_t binding, uint32_t descriptorCount) = 0;
+};
+
+/*****************************************************************************
+ * DescriptorSet class - Handles a descriptor set
+ *****************************************************************************/
+
+class DescriptorSet : RendererResource {
+private:
+    /* Layout of this descriptor set */
+    DescriptorSetLayout* layout;
+
+    /* Descriptor pool */
+    // TODO: Move this out of here
+    VkDescriptorPool pool;
+
+    /* Descriptor set instances (may have one per maximum frame in flight) */
+    std::vector<VkDescriptorSet> instances;
+
+    /* States whether this descriptor set is updatable (i.e. has one set per
+       maximum frame in flight) */
+    bool updatable;
+
+    /* Resource in this descriptor set */
+    std::vector<DescriptorSetResource*> resources;
+
+public:
+    /* Constructor */
+    DescriptorSet(Renderer* renderer, DescriptorSetLayout* layout, bool updatable);
+
+    /* Destructor */
+    virtual ~DescriptorSet();
+
+    /* Set's up this descriptor set with the resources it describes */
+    void setup(std::vector<DescriptorSetResource*> resources);
+
+    /* Updates this descriptor set only for the current frame */
+    void updateCurrentFrame();
 };

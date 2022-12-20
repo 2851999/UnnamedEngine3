@@ -96,10 +96,10 @@
     <ClInclude Include="src\core\vulkan\VulkanBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\IndexBuffer.h">
+    <ClInclude Include="src\core\render\IBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\render\VertexBuffer.h">
+    <ClInclude Include="src\core\render\VBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\core\render\RenderData.h">
@@ -127,6 +127,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\core\render\BufferObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\render\RendererResource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
