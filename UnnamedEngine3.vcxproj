@@ -25,6 +25,7 @@
     <ClInclude Include="src\core\maths\Quaternion.h" />
     <ClInclude Include="src\core\maths\Utils.h" />
     <ClInclude Include="src\core\maths\Vector.h" />
+    <ClInclude Include="src\core\render\BufferObject.h" />
     <ClInclude Include="src\core\render\Colour.h" />
     <ClInclude Include="src\core\render\DescriptorSet.h" />
     <ClInclude Include="src\core\render\Framebuffer.h" />
@@ -62,6 +63,7 @@
     <ClCompile Include="src\core\input\Input.cpp" />
     <ClCompile Include="src\core\maths\Matrix.cpp" />
     <ClCompile Include="src\core\maths\Quaternion.cpp" />
+    <ClCompile Include="src\core\render\BufferObject.cpp" />
     <ClCompile Include="src\core\render\DescriptorSet.cpp" />
     <ClCompile Include="src\core\render\Framebuffer.cpp" />
     <ClCompile Include="src\core\render\GraphicsPipeline.cpp" />

@@ -72,7 +72,7 @@ void BaseEngine::create() {
         meshData->addIndex(0);
         // clang-format on
 
-        meshRenderData = new MeshRenderData(vulkanDevice, meshData);
+        meshRenderData = new MeshRenderData(renderer, meshData);
         delete meshData;
 
         ShaderInterface shaderInterface;

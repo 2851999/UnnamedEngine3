@@ -209,68 +209,72 @@ GraphicsPipeline::VertexInputDescription MeshData::computeVertexInputDescription
  * MeshRenderData class
  *****************************************************************************/
 
-MeshRenderData::MeshRenderData(VulkanDevice* device, MeshData* data) {
+MeshRenderData::MeshRenderData(Renderer* renderer, MeshData* data) {
     // TODO: Don't hard code this
-    bool deviceLocal = true;
+    bool deviceLocal       = true;
     bool persistentMapping = false;
+
+    // For now will also assume if separated then want to be updatable
+    // as this is main reason you might want to separate them
+    // TODO: ^ Don't assume this?
 
     // Vertex buffers
     std::vector<VertexBuffer*> vertexBuffers;
 
     // Create the buffers as needed
     if (data->hasPositions() && data->separatePositions()) {
-        vboPositions = new VertexBuffer(device, data->getPositions().size() * sizeof(data->getPositions()[0]), data->getPositions().data(), deviceLocal, persistentMapping);
+        vboPositions = new VertexBuffer(renderer, data->getPositions().size() * sizeof(data->getPositions()[0]), data->getPositions().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboPositions);
     }
 
     if (data->hasColours() && data->separateColours()) {
-        vboColours = new VertexBuffer(device, data->getColours().size() * sizeof(data->getColours()[0]), data->getColours().data(), deviceLocal, persistentMapping);
+        vboColours = new VertexBuffer(renderer, data->getColours().size() * sizeof(data->getColours()[0]), data->getColours().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboColours);
     }
 
     if (data->hasTextureCoords() && data->separateTextureCoords()) {
-        vboTextureCoords = new VertexBuffer(device, data->getTextureCoords().size() * sizeof(data->getTextureCoords()[0]), data->getTextureCoords().data(), deviceLocal, persistentMapping);
+        vboTextureCoords = new VertexBuffer(renderer, data->getTextureCoords().size() * sizeof(data->getTextureCoords()[0]), data->getTextureCoords().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboTextureCoords);
     }
 
     if (data->hasNormals() && data->separateNormals()) {
-        vboNormals = new VertexBuffer(device, data->getNormals().size() * sizeof(data->getNormals()[0]), data->getNormals().data(), deviceLocal, persistentMapping);
+        vboNormals = new VertexBuffer(renderer, data->getNormals().size() * sizeof(data->getNormals()[0]), data->getNormals().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboNormals);
     }
 
     if (data->hasTangents() && data->separateTangents()) {
-        vboTangents = new VertexBuffer(device, data->getTangents().size() * sizeof(data->getTangents()[0]), data->getTangents().data(), deviceLocal, persistentMapping);
+        vboTangents = new VertexBuffer(renderer, data->getTangents().size() * sizeof(data->getTangents()[0]), data->getTangents().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboTangents);
     }
 
     if (data->hasBitangents() && data->separateBitangents()) {
-        vboBitangents = new VertexBuffer(device, data->getBitangents().size() * sizeof(data->getBitangents()[0]), data->getBitangents().data(), deviceLocal, persistentMapping);
+        vboBitangents = new VertexBuffer(renderer, data->getBitangents().size() * sizeof(data->getBitangents()[0]), data->getBitangents().data(), deviceLocal, persistentMapping, true);
         vertexBuffers.push_back(vboBitangents);
     }
 
     if (data->hasOthers()) {
-        vboOthers = new VertexBuffer(device, data->getOthers().size() * sizeof(data->getOthers()[0]), data->getOthers().data(), deviceLocal, persistentMapping);
+        vboOthers = new VertexBuffer(renderer, data->getOthers().size() * sizeof(data->getOthers()[0]), data->getOthers().data(), deviceLocal, persistentMapping, false);
         vertexBuffers.push_back(vboOthers);
     }
 
     // Setup bones
     if (data->hasBones()) {
-        vboBoneIndices = new VertexBuffer(device, data->getBoneIndices().size() * sizeof(data->getBoneIndices()[0]), data->getBoneIndices().data(), deviceLocal, persistentMapping);
+        vboBoneIndices = new VertexBuffer(renderer, data->getBoneIndices().size() * sizeof(data->getBoneIndices()[0]), data->getBoneIndices().data(), deviceLocal, persistentMapping, false);
         vertexBuffers.push_back(vboBoneIndices);
 
-        vboBoneWeights = new VertexBuffer(device, data->getBoneWeights().size() * sizeof(data->getBoneWeights()[0]), data->getOthers().data(), deviceLocal, persistentMapping);
+        vboBoneWeights = new VertexBuffer(renderer, data->getBoneWeights().size() * sizeof(data->getBoneWeights()[0]), data->getOthers().data(), deviceLocal, persistentMapping, false);
         vertexBuffers.push_back(vboBoneWeights);
     }
 
     // Setup material and offset indices only if assigned
     if (data->hasMaterialIndices())
-        bufferMaterialIndices = new VertexBuffer(device, data->getMaterialIndices().size() * sizeof(data->getMaterialIndices()[0]), data->getMaterialIndices().data(), deviceLocal, persistentMapping);
+        bufferMaterialIndices = new VertexBuffer(renderer, data->getMaterialIndices().size() * sizeof(data->getMaterialIndices()[0]), data->getMaterialIndices().data(), deviceLocal, persistentMapping, false);
     if (data->hasOffsetIndices())
-        bufferOffsetIndices = new VertexBuffer(device, data->getOffsetIndices().size() * sizeof(data->getOffsetIndices()[0]), data->getOffsetIndices().data(), deviceLocal, persistentMapping);
+        bufferOffsetIndices = new VertexBuffer(renderer, data->getOffsetIndices().size() * sizeof(data->getOffsetIndices()[0]), data->getOffsetIndices().data(), deviceLocal, persistentMapping, false);
 
     // Setup indices
     if (data->hasIndices())
-        ibo = new IndexBuffer(device, data->getIndices().size() * sizeof(data->getIndices()[0]), data->getIndices().data(), VK_INDEX_TYPE_UINT32, deviceLocal, persistentMapping);
+        ibo = new IndexBuffer(renderer, data->getIndices().size() * sizeof(data->getIndices()[0]), data->getIndices().data(), VK_INDEX_TYPE_UINT32, deviceLocal, persistentMapping, false);
 
     renderData = new RenderData(vertexBuffers, ibo, data->getCount());
 }

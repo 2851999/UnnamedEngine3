@@ -254,7 +254,7 @@ private:
 
 public:
     /* Constructor and destructor */
-    MeshRenderData(VulkanDevice* device, MeshData* data);
+    MeshRenderData(Renderer* renderer, MeshData* data);
     virtual ~MeshRenderData();
 
     /* Method to render using the data */

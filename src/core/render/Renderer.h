@@ -69,7 +69,11 @@ public:
        between begin & endFrame)*/
     inline VkCommandBuffer getCurrentCommandBuffer() { return commandBuffers[currentFrame]; }
 
+    /* Returns the current frame index (when called between begin & endFrame) */
+    inline unsigned int getCurrentFrame() { return currentFrame; }
+
     /* Returns other things */
+    inline VulkanDevice* getDevice() { return device; }
     inline SwapChain* getSwapChain() { return swapChain; }
     inline RenderPass* getDefaultRenderPass() { return defaultRenderPass; }
 };

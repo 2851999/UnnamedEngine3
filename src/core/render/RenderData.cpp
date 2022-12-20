@@ -26,7 +26,7 @@ void RenderData::render(VkCommandBuffer commandBuffer) {
     // TODO: Stop doing this here (unless need multiple for each frame in flight)
     VkDeviceSize offsets[] = {0};
     for (unsigned int i = 0; i < vertexBuffers.size(); ++i)
-        vertexBufferInstances[i] = vertexBuffers[i]->getVkInstance();
+        vertexBufferInstances[i] = vertexBuffers[i]->getCurrentBuffer()->getVkInstance();
 
     vkCmdBindVertexBuffers(commandBuffer, 0, static_cast<uint32_t>(vertexBufferInstances.size()), vertexBufferInstances.data(), offsets);
 
