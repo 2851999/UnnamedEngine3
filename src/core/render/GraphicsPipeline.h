@@ -14,8 +14,8 @@ private:
     VkPipelineLayout instance;
 
 public:
-    /* Constructor and destructor */
-    GraphicsPipelineLayout(VulkanDevice* device);
+    /* Constructor and destructor (layout can be nullptr) */
+    GraphicsPipelineLayout(VulkanDevice* device, std::vector<VkDescriptorSetLayout> descriptorSetLayouts);
     virtual ~GraphicsPipelineLayout();
 
     /* Returns the Vulkan instance */

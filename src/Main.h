@@ -92,12 +92,13 @@ void EngineTest::initialise() {
     getSettings().debug.validationLayers = true;
     getSettings().video.rayTracing       = false;
     getSettings().window.resizable       = true;
-    //getSettings().video.fullscreen       = true;
-    //getSettings().video.resolution       = VideoResolution::RES_1440p;
+    // getSettings().video.fullscreen       = true;
+    // getSettings().video.resolution       = VideoResolution::RES_1440p;
 
-    // std::string glslangValidatorPath = "C:/VulkanSDK/1.3.204.1/Bin/glslangValidator.exe";
+    std::string glslangValidatorPath = "C:/VulkanSDK/1.3.204.1/Bin/glslangValidator.exe";
     // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "triangle", glslangValidatorPath);
     // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "simple", glslangValidatorPath);
+    // ShaderGroup::compile("./resources/shaders/", "./resources/shaders/", "simpleUBO", glslangValidatorPath);
 }
 
 void EngineTest::created() {

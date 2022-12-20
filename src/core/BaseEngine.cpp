@@ -84,12 +84,14 @@ void BaseEngine::create() {
         descriptorSetLayout->addUBO(0, VK_SHADER_STAGE_VERTEX_BIT);
         descriptorSetLayout->create();
 
-        descriptorSet = new DescriptorSet(renderer, descriptorSetLayout, false);
+        // TODO: Test when not updatable (seems to fail)
+        descriptorSet = new DescriptorSet(renderer, descriptorSetLayout, true);
+        shaderBlockTest.test = 1.0f;
         testUBO       = new UBO(renderer, sizeof(ShaderBlock_Test), &shaderBlockTest, false, true, false);
         descriptorSet->setup({testUBO});
 
-        shaderGroup    = ShaderGroup::load(vulkanDevice, "./resources/shaders/simple");
-        pipelineLayout = new GraphicsPipelineLayout(vulkanDevice);
+        shaderGroup    = ShaderGroup::load(vulkanDevice, "./resources/shaders/simpleUBO");
+        pipelineLayout = new GraphicsPipelineLayout(vulkanDevice, {descriptorSetLayout->getVkInstance()});
         pipeline       = new GraphicsPipeline(pipelineLayout, renderer->getDefaultRenderPass(), shaderGroup, settings.video.resolution.getX(), settings.video.resolution.getY(), MeshData::computeVertexInputDescription(2, {MeshData::POSITION, MeshData::COLOUR}, MeshData::SEPARATE_NONE, shaderInterface), renderer->getSwapChain());
 
         // Now we are ready to create things for Vulkan
@@ -162,6 +164,8 @@ void BaseEngine::drawFrame() {
 
     // Perform any rendering
     this->render();
+
+    descriptorSet->bind(currentCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->getVkInstance(), 0);
 
     meshRenderData->render(currentCommandBuffer);
 

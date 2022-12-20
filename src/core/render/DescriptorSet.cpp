@@ -53,7 +53,7 @@ DescriptorSet::DescriptorSet(Renderer* renderer, DescriptorSetLayout* layout, bo
     device->createDescriptorPool(0, static_cast<uint32_t>(numSetsRequired), static_cast<uint32_t>(poolSizes.size()), poolSizes.data(), &pool);
 
     // Copy descriptor set layouts (need one per set)
-    std::vector<VkDescriptorSetLayout> layouts(numSetsRequired, layout->getVkLayout());
+    std::vector<VkDescriptorSetLayout> layouts(numSetsRequired, layout->getVkInstance());
 
     // Descriptor set allocation info
     VkDescriptorSetAllocateInfo allocInfo{};

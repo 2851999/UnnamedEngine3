@@ -4,12 +4,12 @@
  * GraphicsPipelineLayout class - Handles a graphics pipeline layout
  *****************************************************************************/
 
-GraphicsPipelineLayout::GraphicsPipelineLayout(VulkanDevice* device) : VulkanResource(device) {
+GraphicsPipelineLayout::GraphicsPipelineLayout(VulkanDevice* device, std::vector<VkDescriptorSetLayout> descriptorSetLayouts) : VulkanResource(device) {
     // Create info
     VkPipelineLayoutCreateInfo createInfo{};
     createInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    createInfo.setLayoutCount         = 0;
-    createInfo.pSetLayouts            = nullptr;
+    createInfo.setLayoutCount         = static_cast<uint32_t>(descriptorSetLayouts.size());
+    createInfo.pSetLayouts            = descriptorSetLayouts.data();
     createInfo.pushConstantRangeCount = 0;
     createInfo.pPushConstantRanges    = nullptr;
 

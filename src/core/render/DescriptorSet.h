@@ -45,7 +45,7 @@ public:
     inline void addUBO(uint32_t binding, VkShaderStageFlags stageFlags) { addBinding(binding, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, stageFlags); }
 
     /* Returns the Vulkan instance */
-    inline VkDescriptorSetLayout getVkLayout() const { return instance; }
+    inline VkDescriptorSetLayout getVkInstance() const { return instance; }
 
     /* Returns the binding infos */
     inline std::vector<BindingInfo>& getBindingInfos() { return bindingInfos; }
@@ -98,4 +98,8 @@ public:
 
     /* Updates this descriptor set only for the current frame */
     void updateCurrentFrame();
+
+    /* Binds this descriptor set using a given command buffer */
+    // TODO: Simplify this?
+    inline void bind(VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout pipelineLayout, uint32_t firstSet) { vkCmdBindDescriptorSets(commandBuffer, pipelineBindPoint, pipelineLayout, firstSet, 1, updatable ? &instances[0] : &instances[renderer->getCurrentFrame()], 0, nullptr); }
 };
